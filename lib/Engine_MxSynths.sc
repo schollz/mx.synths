@@ -90,17 +90,18 @@ Engine_MxSynths : CroneEngine {
 			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
-			var freq=hz;
-			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
-			var freqBase=freq;
-			var freqRes=SinOsc.kr(Rand(0,0.2),0).range(freqBase/2,freqBase*2);
-			var pdbase=Impulse.ar(freqBase);
-			var pd=Phasor.ar(pdbase,2*pi*freqBase/context.server.sampleRate,0,2pi);
-			var pdres=Phasor.ar(pdbase,2*pi*freqRes/context.server.sampleRate,0,2pi);
-			var pdi=LinLin.ar((2pi-pd).max(0),0,2pi,0,1);
-			var snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase).dup;
-
-			snd = Pan2.ar(snd,pan);
+			var freq, env, freqBase, freqRes, pdbase, pd, pdres, pdi, snd;
+			freq=hz;
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			freqBase=freq;
+			freqRes=SinOsc.kr(Rand(0,0.2),0).range(freqBase/2,freqBase*2);
+			pdbase=Impulse.ar(freqBase);
+			pd=Phasor.ar(pdbase,2*pi*freqBase/context.server.sampleRate,0,2pi);
+			pdres=Phasor.ar(pdbase,2*pi*freqRes/context.server.sampleRate,0,2pi);
+			pdi=LinLin.ar((2pi-pd).max(0),0,2pi,0,1);
+			snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase).dup;
+			pan = Lag.kr(pan,0.1);
+			snd = Balance2.ar(snd[0],snd[1],pan);
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
@@ -399,11 +400,13 @@ Engine_MxSynths : CroneEngine {
 			var val=msg[2];
 			("setting "++key++" to "++val).postln;
 			mxParameters.put(key,val);
-			mxParameters.at("amp").postln;
 			switch (key, 
 				"sub",{}, 	// do nothing, is special
 				"synth",{}, // do nothing
 				"amp",{}, 	// do nothing
+				"attack",{}, 	// do nothing
+				"sustain",{}, 	// do nothing
+				"decay",{}, 	// do nothing
 				{
 					mxVoices.keysValuesDo({ arg note, syn;
 						if (syn.isRunning==true,{
