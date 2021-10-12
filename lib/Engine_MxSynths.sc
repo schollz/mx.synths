@@ -104,6 +104,29 @@ Engine_MxSynths : CroneEngine {
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
+
+		SynthDef("toshiya",{
+			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
+			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
+			var snd,note,env;
+			note=Lag.kr(hz,portamento).cpsmidi;
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			sub=Lag.kr(sub,1);
+			snd=Pan2.ar(SinOsc.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))/12*amp,SinOsc.kr(0.1,mul:0.2))*sub;
+			snd=snd+Mix.ar({
+				var snd2;
+				snd2=SinOsc.ar(note.midicps);
+				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,200,12000),2);
+				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/NRand(10,20,3) );
+				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))
+			}!2);
+			snd=snd+(Amplitude.kr(snd)*VarLag.kr(LFNoise0.kr(1),1,warp:\sine).range(0.1,1.0)*Klank.ar(`[[hz, hz*2+23, hz*4+53, hz*8+23], nil, [1, 1, 1, 1]], PinkNoise.ar([0.007, 0.007])));
+			snd = Balance2.ar(snd[0],snd[1],pan);
+			Out.ar(out,snd*env*amp/8);
+		}).add;
+
+
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
 		SynthDef("PolyPerc",{
 			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
