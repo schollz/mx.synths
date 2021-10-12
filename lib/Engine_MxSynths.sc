@@ -22,7 +22,7 @@ Engine_MxSynths : CroneEngine {
 
 		// <mx>
 		// initialize variables
-		mxParameters=Dictionary.with(*["synth"->"synthy","sub"->1.0,
+		mxParameters=Dictionary.with(*["synth"->"synthy","sub"->1.0,"amp"->1.0,
 			"portamento"->0.0,"monophonic"->0.0,
 			"pan"->0.0,"tune"->0.0,
 			"attack"->1.0,"decay"->0.2,"sustain"->0.9,"release"->5.0,
@@ -34,13 +34,13 @@ Engine_MxSynths : CroneEngine {
 
 		// initialize synth defs
 		SynthDef("mxfx",{
-			arg out, in, 
-			lpf=20000, reverb=0, delay=0,
+			arg out=0, inBus=10, 
+			lpf=20000, delay=0,
 			secondsPerBeat=1,delayBeats=4,delayFeedback=0.1;
 
 			var snd, snd2;
 
-			snd=In.ar(in,2);
+			snd=In.ar(inBus,2);
 	
 			// // add flanger
 			// flanger = snd+LocalIn.ar(2); //add some feedback
@@ -49,26 +49,15 @@ Engine_MxSynths : CroneEngine {
 			// snd=SelectX.ar(flang,[snd,flanger]);
 
 			// lpf
-			lpf = lpf.lag(1);
-			snd=MoogLadder.ar(snd.tanh,lpf);
+			snd = LPF.ar(snd.tanh,Lag.kr(lpf,1));
 			
 			// delay
-			snd = snd + (delay*CombC.ar(
+			snd = snd + (delay * CombL.ar(
 				snd,
 				2,
 				secondsPerBeat*delayBeats,
 				secondsPerBeat*delayBeats*LinLin.kr(delayFeedback,0,1,2,128),// delayFeedback should vary between 2 and 128
 			)); 
-
-			// reverb
-			snd2 = DelayN.ar(snd2, 0.03, 0.03);
-			snd2 = CombN.ar(snd2, 0.1, {Rand(0.01,0.099)}!32, 4);
-			snd2 = SplayAz.ar(2, snd2);
-			snd2 = LPF.ar(snd2, 1500);
-			5.do{snd2 = AllpassN.ar(snd2, 0.1, {Rand(0.01,0.099)}!2, 3)};
-			snd2 = LPF.ar(snd2, 1500);
-			snd2 = LeakDC.ar(snd2);
-			snd = SelectX.ar(reverb,[snd,snd2]);
 
 			// todo:
 			// add tremelo
@@ -85,16 +74,45 @@ Engine_MxSynths : CroneEngine {
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 			sub=Lag.kr(sub,1);
-			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))/12*sub);
+			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))*sub);
 			snd=snd+Mix.ar({
 				var snd2;
 				snd2=SawDPW.ar(note.midicps);
 				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,2000,12000));
 				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/15 );
-				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/12
+				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))
 			}!2);
 			snd = Balance2.ar(snd[0],snd[1],pan);
-			Out.ar(out,snd*env*amp);
+			Out.ar(out,snd*env*amp/5);
+		}).add;
+
+		SynthDef("casio",{
+			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
+			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
+			var freq=hz;
+			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			var freqBase=freq;
+			var freqRes=SinOsc.kr(Rand(0,0.2),0).range(freqBase/2,freqBase*2);
+			var pdbase=Impulse.ar(freqBase);
+			var pd=Phasor.ar(pdbase,2*pi*freqBase/context.server.sampleRate,0,2pi);
+			var pdres=Phasor.ar(pdbase,2*pi*freqRes/context.server.sampleRate,0,2pi);
+			var pdi=LinLin.ar((2pi-pd).max(0),0,2pi,0,1);
+			var snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase).dup;
+
+			snd = Pan2.ar(snd,pan);
+			Out.ar(out,snd*env*amp/5);
+		}).add;
+
+		SynthDef("PolyPerc",{
+			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
+			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
+			var snd = Pulse.ar(hz, 0.5);
+			var filt = MoogFF.ar(snd,1000,2);
+			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			snd = Pan2.ar(snd,pan);
+			Out.ar(out,snd*env*amp/10);
 		}).add;
 
 		SynthDef("piano",{
@@ -102,15 +120,16 @@ Engine_MxSynths : CroneEngine {
 			sub=0,portamento=1,
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0;
-			var snd,note,env;
+			var snd,note,env, damp;
 			var noise, string, delaytime, lpf, noise_env, damp_mul;
 			var noise_hz = 4000, noise_attack=0.002, noise_decay=0.06,
 			tune_up = 1.0005, tune_down = 0.9996, string_decay=3.0,
-			lpf_ratio=2.0, lpf_rq = 4.0, hpf_hz = 40, damp=0, damp_time=0.1;
+			lpf_ratio=2.0, lpf_rq = 4.0, hpf_hz = 40, damp_time=0.1;
 
 			hz=Lag.kr(hz,portamento);
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 
+			damp=mod1;
 			damp_mul = LagUD.ar(K2A.ar(1.0 - damp), 0, damp_time);
 
 			noise_env = Decay2.ar(Impulse.ar(0));
@@ -121,16 +140,17 @@ Engine_MxSynths : CroneEngine {
 
 			snd = RLPF.ar(string, lpf_ratio * hz, lpf_rq);
 			snd = HPF.ar(snd, hpf_hz);
-			snd = Balance2.ar(snd[0],snd[1],pan);
+			snd = Pan2.ar(snd,pan);
 	
-			Out.ar(out,snd*env*amp);
+			Out.ar(out,snd*env*amp/5);
 		}).add;
 
 		// initialize fx synth and bus
 		context.server.sync;
 		mxBusFx = Bus.audio(context.server,2);
+		mxBusFx.postln;
 		context.server.sync;
-		mxSynthFX = Synth.new("mxfx",[\out,0,\in,mxBusFx]);
+		mxSynthFX = Synth.new("mxfx",[\out,0,\inBus,mxBusFx]);
 		context.server.sync;
 
 		// intialize helper functions
@@ -138,10 +158,11 @@ Engine_MxSynths : CroneEngine {
 			arg note,amp;
 			var lowestNote=10000;
 			var sub=0;
-			("mx_note_on "++note).postln;
+			(mxParameters.at("synth")++" note_on "++note).postln;
 
 			// if monophonic, remove all the other sounds
 			if (mxParameters.at("monophonic")>0,{
+				"turning off monophonic voices".postln;
 				mxVoicesOn.keysValuesDo({ arg key, syn;
 					mxVoicesOn.removeAt(key);
 					mxVoices.at(key).set(\gate,0);
@@ -165,12 +186,13 @@ Engine_MxSynths : CroneEngine {
 				sub=1;
 			});
 
+			(amp*mxParameters.at("amp")).postln;
+
 			mxVoices.put(note,
 				Synth.before(mxSynthFX,mxParameters.at("synth"),[
-					\amp,amp,
+					\amp,amp*mxParameters.at("amp"),
 					\out,mxBusFx,
 					\hz,(note+mxParameters.at("tune")).midicps,
-					\amp,mxParameters.at("amp"),
 					\pan,mxParameters.at("pan"),
 					\sub,sub*mxParameters.at("sub"),
 					\attack,mxParameters.at("attack"),
@@ -226,20 +248,9 @@ Engine_MxSynths : CroneEngine {
 			var note=msg[1];
 			if (mxVoices.at(note)!=nil,{
 				if (mxVoices.at(note).isRunning==true,{
-					("mx_note_on retrigger "++note).postln;
-					mxVoices.at(note).set(\hz,msg[1].midicps,\amp,msg[2],\gate,0);
-					mxVoices.at(note).set(\gate,1);
-					mxVoicesOn.keysValuesDo({ arg key, syn;
-						if (key<lowestNote,{
-							lowestNote=key;
-						});
-					});
-					if (note<lowestNote,{
-						("swapping sub to "++note).postln;
-						mxVoices.at(lowestNote).set(\sub,0);
-						mxVoices.at(note).set(\sub,mxParameters.at("sub"));
-					});
-					mxVoicesOn.put(note,1);
+					(mxParameters.at("synth")++" retrigger "++note).postln;
+					mxVoices.at(note).set(\gate,0);
+					fnNoteOn.(msg[1],msg[2]);
 				},{ fnNoteOn.(msg[1],msg[2]); });
 			},{  fnNoteOn.(msg[1],msg[2]); });
 		});	
@@ -286,17 +297,26 @@ Engine_MxSynths : CroneEngine {
 			mxSynthFX.set(key,val);
 		});
 
+		this.addCommand("mx_set_synth","s",{ arg msg;
+			var val=msg[1].asSymbol;
+			("setting synth to "++val).postln;
+			mxParameters.put("synth",val.asSymbol);
+		});
+
 		this.addCommand("mx_set","sf",{ arg msg;
-			var key=msg[1].asSymbol;
+			var key=msg[1].asString;
 			var val=msg[2];
+			("setting "++key++" to "++val).postln;
 			mxParameters.put(key,val);
+			mxParameters.at("amp").postln;
 			switch (key, 
 				"sub",{}, 	// do nothing, is special
 				"synth",{}, // do nothing
+				"amp",{}, 	// do nothing
 				{
 					mxVoices.keysValuesDo({ arg note, syn;
 						if (syn.isRunning==true,{
-							syn.set(key,val);
+							syn.set(key.asSymbol,val);
 						});
 					});
 				}

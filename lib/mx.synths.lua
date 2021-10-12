@@ -14,16 +14,16 @@ function MxSynths:new(args)
   local delay_last_clock=0
 
   -- add parameters
-  l.synths={"synthy","piano"}
+  l.synths={"synthy","piano","casio","PolyPerc"}
   l.presets={}
+  l.presets["synthy"]={"massive"}
 
-  presets["synthy"]={"massive"}
-  params:add_group("MX.SYNTHS",19)
+  params:add_group("MX.SYNTHS",18)
 
   -- synth selector
-  params:add_option("mxsynths_synth","synth",synths,1)
+  params:add_option("mxsynths_synth","synth",l.synths,2)
   params:set_action("mxsynths_synth",function(x)
-    engine.mx_set("synth",synths[i])
+    engine.mx_set_synth(l.synths[x])
   end)
 
   -- polyphony selector
@@ -120,17 +120,7 @@ function MxSynths:new(args)
     controlspec=filter_freq,
     formatter=Formatters.format_freq,
     action=function(x)
-      engine.mx_set("lpf",x)
-    end
-  }
-
-  params:add {
-    type='control',
-    id="mxsynths_reverb_send",
-    name="reverb send",
-    controlspec=controlspec.new(0,100,'lin',0,0,'%',1/100),
-    action=function(x)
-      engine.mx_fxset("reverb",x/100)
+      engine.mx_fxset("lpf",x)
     end
   }
 
@@ -174,6 +164,7 @@ function MxSynths:new(args)
 
   engine.mx_fxset("secondsPerBeat",clock.get_beat_sec())
 
+  params:bang()
   return l
 end
 
@@ -205,7 +196,7 @@ function MxSynths:setup_midi()
           do return end
         end
         if d.type=="note_on" then
-          engine.mx_note_on(d.note,d.vel/127)
+          engine.mx_note_on(d.note,d.vel/127/2+0.5)
         elseif d.type=="note_off" then
           engine.mx_note_off(d.note)
         elseif d.cc==64 then -- sustain pedal
