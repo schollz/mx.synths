@@ -71,6 +71,7 @@ Engine_MxSynths : CroneEngine {
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
 			var snd,note,env;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 			sub=Lag.kr(sub,1);
@@ -82,7 +83,7 @@ Engine_MxSynths : CroneEngine {
 				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/15 );
 				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))
 			}!2);
-			snd = Balance2.ar(snd[0],snd[1],pan);
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
@@ -91,6 +92,7 @@ Engine_MxSynths : CroneEngine {
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
 			var freq, env, freqBase, freqRes, pdbase, pd, pdres, pdi, snd;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			freq=hz;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 			freqBase=freq;
@@ -101,7 +103,7 @@ Engine_MxSynths : CroneEngine {
 			pdi=LinLin.ar((2pi-pd).max(0),0,2pi,0,1);
 			snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase).dup;
 			pan = Lag.kr(pan,0.1);
-			snd = Balance2.ar(snd[0],snd[1],pan);
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
@@ -116,6 +118,7 @@ Engine_MxSynths : CroneEngine {
 			var env1, env2, env3, env4;
 			var osc1, osc2, osc3, osc4, snd;
 			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			lfoSpeed = lfoSpeed * 12;
 
 			hz = hz * 2;
@@ -132,7 +135,7 @@ Engine_MxSynths : CroneEngine {
 			snd = Mix((osc3 * (1 - mix)) + (osc1 * mix));
 			snd = snd * (SinOsc.ar(lfoSpeed) * lfoDepth + 1);
 
-			snd = Pan2.ar(snd,pan);
+			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/8);
 		}).add;
 
@@ -142,6 +145,7 @@ Engine_MxSynths : CroneEngine {
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
 			var snd,note,env;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 			sub=Lag.kr(sub,1);
@@ -154,7 +158,7 @@ Engine_MxSynths : CroneEngine {
 				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))
 			}!2);
 			snd=snd+(Amplitude.kr(snd)*VarLag.kr(LFNoise0.kr(1),1,warp:\sine).range(0.1,1.0)*Klank.ar(`[[hz, hz*2+23, hz*4+53, hz*8+23], nil, [1, 1, 1, 1]], PinkNoise.ar([0.007, 0.007])));
-			snd = Balance2.ar(snd[0],snd[1],pan);
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/8);
 		}).add;
 
@@ -164,6 +168,7 @@ Engine_MxSynths : CroneEngine {
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
 			var snd,note,env, basshz,bass;
 			var detuning=0.04;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 			snd=Mix.ar(Array.fill(2,{
@@ -189,7 +194,7 @@ Engine_MxSynths : CroneEngine {
 			bass = LPF.ar(bass,SinOsc.kr(0.1).range(2,5)*basshz);
 			snd=snd+(SinOsc.kr(0.123).range(0.2,1.0)*bass*sub.poll);
 
-			snd = Balance2.ar(snd[0],snd[1],pan);
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/4);
 		}).add;
 
@@ -199,10 +204,12 @@ Engine_MxSynths : CroneEngine {
 			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
-			var snd = Pulse.ar(hz, 0.5);
-			var filt = MoogFF.ar(snd,1000,2);
-			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
-			snd = Pan2.ar(snd,pan);
+			var snd,filt,env;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			snd = Pulse.ar(hz, 0.5);
+			filt = MoogFF.ar(snd,1000,2);
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/10);
 		}).add;
 
@@ -217,7 +224,8 @@ Engine_MxSynths : CroneEngine {
 			var noise_hz = 4000, noise_attack=0.002, noise_decay=0.06,
 			tune_up = 1.0005, tune_down = 0.9996, string_decay=3.0,
 			lpf_ratio=2.0, lpf_rq = 4.0, hpf_hz = 40, damp_time=0.1;
-
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			
 			hz=Lag.kr(hz,portamento);
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 
@@ -232,7 +240,7 @@ Engine_MxSynths : CroneEngine {
 
 			snd = RLPF.ar(string, lpf_ratio * hz, lpf_rq);
 			snd = HPF.ar(snd, hpf_hz);
-			snd = Pan2.ar(snd,pan);
+			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 	
 			Out.ar(out,snd*env*amp/5);
 		}).add;

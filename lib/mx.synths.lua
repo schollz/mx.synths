@@ -196,7 +196,7 @@ function MxSynths:new(args)
     end
   end)
 
-  params:set("lfo_mxsynths_pan",2)
+  -- params:set("lfo_mxsynths_pan",2)
   return l
 end
 
@@ -222,7 +222,7 @@ function MxSynths:create_lfo_param(name,range,default)
     type='control',
     id="lfoperiod_mxsynths_"..name,
     name=name.." lfo period",
-    controlspec=controlspec.new(0,10,'lin',0.01,0.01,'s',0.01/10)
+    controlspec=controlspec.new(0,10,'lin',0.01,1,'s',0.01/10)
   }
   params:add {
     type='control',
