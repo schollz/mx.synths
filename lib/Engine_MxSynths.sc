@@ -83,16 +83,16 @@ Engine_MxSynths : CroneEngine {
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
 			sub=Lag.kr(sub,1);
-			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))/12*amp*sub);
+			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))/12*sub);
 			snd=snd+Mix.ar({
 				var snd2;
 				snd2=SawDPW.ar(note.midicps);
 				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,2000,12000));
 				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/15 );
-				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/12*amp
+				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/12
 			}!2);
 			snd = Balance2.ar(snd[0],snd[1],pan);
-			Out.ar(out,snd*env);
+			Out.ar(out,snd*env*amp);
 		}).add;
 
 		SynthDef("piano",{
@@ -117,11 +117,11 @@ Engine_MxSynths : CroneEngine {
 			delaytime = 1.0 / (hz * [tune_up, tune_down]);
 			string = Mix.new(CombL.ar(noise, delaytime, delaytime, string_decay * damp_mul));
 
-			snd = RLPF.ar(string, lpf_ratio * hz, lpf_rq) * amp;
+			snd = RLPF.ar(string, lpf_ratio * hz, lpf_rq);
 			snd = HPF.ar(snd, hpf_hz);
-
 			snd = Balance2.ar(snd[0],snd[1],pan);
-			Out.ar(out,snd*env);
+	
+			Out.ar(out,snd*env*amp);
 		}).add;
 
 		// initialize fx synth and bus
