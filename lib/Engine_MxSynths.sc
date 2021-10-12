@@ -104,6 +104,7 @@ Engine_MxSynths : CroneEngine {
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
+		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
 		SynthDef("PolyPerc",{
 			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
@@ -115,6 +116,7 @@ Engine_MxSynths : CroneEngine {
 			Out.ar(out,snd*env*amp/10);
 		}).add;
 
+		// https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
 		SynthDef("piano",{
 			arg out=0,hz=220,amp=0.5,pan=0,gate=1,
 			sub=0,portamento=1,
