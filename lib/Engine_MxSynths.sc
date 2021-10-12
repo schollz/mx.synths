@@ -22,7 +22,9 @@ Engine_MxSynths : CroneEngine {
 
 		// <mx>
 		// initialize variables
-		mxParameters=Dictionary.with(*["synth"->"synthy","sub"->1.0,"portamento"->0.0,"pan"->0.0,
+		mxParameters=Dictionary.with(*["synth"->"synthy","sub"->1.0,
+			"portamento"->0.0,"monophonic"->0.0,
+			"pan"->0.0,"tune"->0.0,
 			"attack"->1.0,"decay"->0.2,"sustain"->0.9,"release"->5.0,
 			"mod1"->0.0,"mod2"->0.0,"mod3"->0.0,"mod4"->0.0]);
 		mxVoices=Dictionary.new;
@@ -47,7 +49,7 @@ Engine_MxSynths : CroneEngine {
 			// snd=SelectX.ar(flang,[snd,flanger]);
 
 			// lpf
-			lpf = lpf.lag(lpf_lag);
+			lpf = lpf.lag(1);
 			snd=MoogLadder.ar(snd.tanh,lpf);
 			
 			// delay
@@ -101,7 +103,7 @@ Engine_MxSynths : CroneEngine {
 			attack=1.0,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0;
 			var snd,note,env;
-			var noise, string, delaytime, lpf, noise_env, snd, damp_mul;
+			var noise, string, delaytime, lpf, noise_env, damp_mul;
 			var noise_hz = 4000, noise_attack=0.002, noise_decay=0.06,
 			tune_up = 1.0005, tune_down = 0.9996, string_decay=3.0,
 			lpf_ratio=2.0, lpf_rq = 4.0, hpf_hz = 40, damp=0, damp_time=0.1;
@@ -137,6 +139,15 @@ Engine_MxSynths : CroneEngine {
 			var lowestNote=10000;
 			var sub=0;
 			("mx_note_on "++note).postln;
+
+			// if monophonic, remove all the other sounds
+			if (mxParameters.at("monophonic")>0,{
+				mxVoicesOn.keysValuesDo({ arg key, syn;
+					mxVoicesOn.removeAt(key);
+					mxVoices.at(key).set(\gate,0);
+				});
+			});
+
 			// low-note priority for sub oscillator
 			mxVoicesOn.keysValuesDo({ arg key, syn;
 				if (key<lowestNote,{
@@ -158,7 +169,7 @@ Engine_MxSynths : CroneEngine {
 				Synth.before(mxSynthFX,mxParameters.at("synth"),[
 					\amp,amp,
 					\out,mxBusFx,
-					\hz,note.midicps,
+					\hz,(note+mxParameters.at("tune")).midicps,
 					\amp,mxParameters.at("amp"),
 					\pan,mxParameters.at("pan"),
 					\sub,sub*mxParameters.at("sub"),
