@@ -168,7 +168,7 @@ Engine_MxSynths : CroneEngine {
 			snd=Mix.ar(Array.fill(2,{
 				arg i;
 				var hz_,snd_;
-				hz_=(hz.cpsmidi+SinOsc.kr(Rand(0.1,0.5),Rand(0,pi)).range(detuning.neg,detuning)).midicps;
+				hz_=((2*hz).cpsmidi+SinOsc.kr(Rand(0.1,0.5),Rand(0,pi)).range(detuning.neg,detuning)).midicps;
 				snd_=Pulse.ar(hz_,0.17);
 				snd_=snd_+Pulse.ar(hz_/2,0.17);
 				snd_=snd_+Pulse.ar(hz_*2,0.17);
