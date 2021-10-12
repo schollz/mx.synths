@@ -104,6 +104,37 @@ Engine_MxSynths : CroneEngine {
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
+		// port of STK's Rhodey (yamaha DX7-style Fender Rhodes) https://sccode.org/1-522
+		SynthDef("epiano",{
+			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
+			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
+
+			// all of these range from 0 to 1
+			var vel = 0.8, modIndex = 0.2, mix = 0.2, lfoSpeed = 0.4, lfoDepth = 0.1;
+			var env1, env2, env3, env4;
+			var osc1, osc2, osc3, osc4, snd;
+			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			lfoSpeed = lfoSpeed * 12;
+
+			hz = hz * 2;
+
+			env1 = EnvGen.ar(Env.adsr(0.001, 1.25, 0.0, 0.04, curve: \lin));
+			env2 = EnvGen.ar(Env.adsr(0.001, 1.00, 0.0, 0.04, curve: \lin));
+			env3 = EnvGen.ar(Env.adsr(0.001, 1.50, 0.0, 0.04, curve: \lin));
+			env4 = EnvGen.ar(Env.adsr(0.001, 1.50, 0.0, 0.04, curve: \lin));
+
+			osc4 = SinOsc.ar(hz * 0.5) * 2pi * 2 * 0.535887 * modIndex * env4 * vel;
+			osc3 = SinOsc.ar(hz, osc4) * env3 * vel;
+			osc2 = SinOsc.ar(hz * 15) * 2pi * 0.05 * env2 * vel;
+			osc1 = SinOsc.ar(hz, osc2) * env1 * vel;
+			snd = Mix((osc3 * (1 - mix)) + (osc1 * mix));
+			snd = snd * (SinOsc.ar(lfoSpeed) * lfoDepth + 1);
+
+			snd = Pan2.ar(snd,pan);
+			Out.ar(out,snd*env*amp/8);
+		}).add;
+
 
 		SynthDef("toshiya",{
 			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
@@ -124,6 +155,41 @@ Engine_MxSynths : CroneEngine {
 			snd=snd+(Amplitude.kr(snd)*VarLag.kr(LFNoise0.kr(1),1,warp:\sine).range(0.1,1.0)*Klank.ar(`[[hz, hz*2+23, hz*4+53, hz*8+23], nil, [1, 1, 1, 1]], PinkNoise.ar([0.007, 0.007])));
 			snd = Balance2.ar(snd[0],snd[1],pan);
 			Out.ar(out,snd*env*amp/8);
+		}).add;
+
+		SynthDef("malone",{
+			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
+			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0;
+			var snd,note,env, basshz,bass;
+			var detuning=0.04;
+			note=Lag.kr(hz,portamento).cpsmidi;
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			snd=Mix.ar(Array.fill(2,{
+				arg i;
+				var hz_,snd_;
+				hz_=(hz.cpsmidi+SinOsc.kr(Rand(0.1,0.5),Rand(0,pi)).range(detuning.neg,detuning)).midicps;
+				snd_=Pulse.ar(hz_,0.17);
+				snd_=snd_+Pulse.ar(hz_/2,0.17);
+				snd_=snd_+Pulse.ar(hz_*2,0.17);
+				snd_=snd_+LFTri.ar(hz_/4);
+				snd_=RLPF.ar(snd_,hz_*6,LFTri.kr([0.5,0.45]).range(0.3,1));
+				Pan2.ar(snd_,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/10
+			}));
+
+
+			basshz=hz;
+			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
+			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
+			bass=Pulse.ar(basshz,width:SinOsc.kr(1/3).range(0.2,0.4));
+			bass=bass+LPF.ar(WhiteNoise.ar(SinOsc.kr(1/rrand(3,4)).range(1,rrand(3,4))),2*basshz);
+			bass = Pan2.ar(bass,LFTri.kr(1/6.12).range(-0.2,0.2));
+			bass = HPF.ar(bass,20);
+			bass = LPF.ar(bass,SinOsc.kr(0.1).range(2,5)*basshz);
+			snd=snd+(SinOsc.kr(0.123).range(0.2,1.0)*bass*sub.poll);
+
+			snd = Balance2.ar(snd[0],snd[1],pan);
+			Out.ar(out,snd*env*amp/4);
 		}).add;
 
 
@@ -211,7 +277,7 @@ Engine_MxSynths : CroneEngine {
 				sub=1;
 			});
 
-			(amp*mxParameters.at("amp")).postln;
+			("sub at "++(sub*mxParameters.at("sub"))).postln;
 
 			mxVoices.put(note,
 				Synth.before(mxSynthFX,mxParameters.at("synth"),[
