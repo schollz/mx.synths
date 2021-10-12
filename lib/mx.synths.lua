@@ -14,14 +14,14 @@ function MxSynths:new(args)
   local delay_last_clock=0
 
   -- add parameters
-  l.synths={"synthy","piano","casio","PolyPerc"}
+  l.synths={"epiano","malone","toshiya","casio","piano","synthy","PolyPerc"}
   l.presets={}
   l.presets["synthy"]={"massive"}
 
-  params:add_group("MX.SYNTHS",18)
+  params:add_group("MX.SYNTHS",19)
 
   -- synth selector
-  params:add_option("mxsynths_synth","synth",l.synths,2)
+  params:add_option("mxsynths_synth","synth",l.synths,1)
   params:set_action("mxsynths_synth",function(x)
     engine.mx_set_synth(l.synths[x])
   end)
@@ -39,6 +39,14 @@ function MxSynths:new(args)
   end}
   params:set_action("mxsynths_amp",function(x)
     engine.mx_set("amp",util.dbamp(x))
+  end)
+
+  params:add{type="control",id="mxsynths_sub",name="sub",controlspec=controlspec.new(-96,20,'lin',1,-9,'',1/(20+96)),formatter=function(v)
+    local val=math.floor(util.linlin(0,1,v.controlspec.minval,v.controlspec.maxval,v.raw)*10)/10
+    return ((val<0) and "" or "+")..val.." dB"
+  end}
+  params:set_action("mxsynths_sub",function(x)
+    engine.mx_set("sub",util.dbamp(x))
   end)
 
   params:add {
@@ -85,7 +93,7 @@ function MxSynths:new(args)
     type='control',
     id="mxsynths_release",
     name="release",
-    controlspec=controlspec.new(0,10,'lin',0,2,'s'),
+    controlspec=controlspec.new(0,10,'lin',0,1,'s'),
     action=function(x)
       engine.mx_set("release",x)
     end
@@ -128,7 +136,7 @@ function MxSynths:new(args)
     type='control',
     id="mxsynths_delay_send",
     name="delay send",
-    controlspec=controlspec.new(0,100,'lin',0,0,'%',1/100),
+    controlspec=controlspec.new(0,100,'lin',0,30,'%',1/100),
     action=function(x)
       engine.mx_fxset("delay",x/100)
     end
@@ -138,13 +146,13 @@ function MxSynths:new(args)
     type='control',
     id="mxsynths_delay_times",
     name="delay iterations",
-    controlspec=controlspec.new(0,100,'lin',0,1,'beats',1/100),
+    controlspec=controlspec.new(0,100,'lin',0,11,'beats',1/100),
     action=function(x)
       engine.mx_fxset("delayFeedback",x/100)
     end
   }
 
-  params:add_option("mxsynths_delay_rate","delay rate",delay_rates_names,1)
+  params:add_option("mxsynths_delay_rate","delay rate",delay_rates_names,3)
   params:set_action("mxsynths_delay_rate",function(x)
     engine.mx_fxset("delayBeats",delay_rates[x])
   end)
