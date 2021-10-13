@@ -63,6 +63,10 @@ function redraw()
     organ()
   elseif synth=="casio" then
     casio()
+  elseif synth=="synthy" then
+    saws()
+  elseif synth=="epiano" then
+    epiano()
   else
     generic()
   end
@@ -72,6 +76,62 @@ end
 
 function rerun()
   norns.script.load(norns.state.script)
+end
+
+function epiano()
+  local mod={0,0,0,0}
+  for i=1,4 do
+    mod[i]=params:get("mxsynths_mod"..i)
+  end
+  local w=util.linlin(-1,1,50,120,mod[2])
+  local h=util.linlin(-1,1,10,40,mod[3])
+  local x=(128-w)/2
+  local y=(64-h)/2
+  for i=1,8 do
+    screen.level(math.floor(util.linlin(-1,1,1,15.9,mod[1])))
+    screen.rect(x,y,w/8,h)
+    screen.stroke()
+    x=x+w/8
+  end
+  x=(128-w)/2
+  for i=1,8 do
+    if i~=8 and i~=3 then
+      screen.level(math.floor(util.linlin(-1,1,1,15.9,mod[4])))
+      screen.rect(x+w/8/4*3,y+0.5,w/8/2,h/2)
+      screen.fill()
+    end
+    x=x+w/8
+  end
+end
+local pospos={}
+for i=1,128 do
+  table.insert(pospos,i)
+end
+
+function saws()
+  local mod={0,0,0,0}
+  for i=1,4 do
+    mod[i]=params:get("mxsynths_mod"..i)
+  end
+  local h=util.linlin(-1,1,10,60,mod[1])
+  local p=util.linlin(-1,1,25,2,mod[2])
+  local n=math.floor(util.linlin(-1,1,1,15,mod[4]))
+  for i=1,128 do
+    local x=i
+    for j=1,n do
+      local y=61-h/(2*p)*(pospos[i]%(2*p))
+      y=y+math.sin(pospos[i]/util.linlin(-1,1,120,60,mod[3])*clock.get_beats()*clock.get_beat_sec()/100)*util.linlin(-1,1,0,20,mod[3])
+      screen.level(math.ceil(j/n*15))
+      y=y-(j-1)
+      if i>1 then
+        screen.line(x,y)
+        screen.stroke()
+      end
+      screen.move(x,y)
+    end
+  end
+  local next=table.remove(pospos,1)
+  table.insert(pospos,next)
 end
 
 function squares()
@@ -255,7 +315,9 @@ function tree_rotate(x,y,a)
   return a,b
 end
 function tree_branches(a,b,len,ang,dir,count,color)
-  local angle=27*math.pi/180
+  local period=math.random(5,20)
+  local offset=math.random(5,20)
+  local angle=27*math.pi/180*(util.linlin(-1,1,0.75,1.25,math.sin(clock.get_beat_sec()*clock.get_beats()/period+offset)))
   len=len*.66
   if count>8 then return end
   if len<3 then return end

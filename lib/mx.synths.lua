@@ -15,11 +15,11 @@ function MxSynths:new(args)
 
   -- add parameters
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
-  l.synths={"piano","epiano","malone","toshiya","casio","synthy","PolyPerc"}
+  l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc"}
   l.presets={}
   l.presets["synthy"]={"massive"}
 
-  params:add_group("MX.SYNTHS",20+11*5)
+  params:add_group("MX.SYNTHS",20+12*5)
 
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
@@ -162,12 +162,13 @@ function MxSynths:new(args)
 
   params:add_separator("lfos")
   l:create_lfo_param("pan",{-1,1},{-0.5,0.5})
+  l:create_lfo_param("sub",{-96,10},{-36,-5})
   l:create_lfo_param("attack",{0,10},{0.01,0.05})
   l:create_lfo_param("decay",{0,10},{1,2})
   l:create_lfo_param("sustain",{0,1},{0.5,1})
   l:create_lfo_param("release",{0,10},{0,2})
   for i=1,4 do
-    l:create_lfo_param("mod"..i,{-1,1},{0.0,1.0})
+    l:create_lfo_param("mod"..i,{-1,1},{-0.5,0.5})
   end
   l:create_lfo_param("lpf",{20,20000},{300,6000})
   l:create_lfo_param("delay",{0,100},{0,100})
@@ -196,6 +197,11 @@ function MxSynths:new(args)
   end)
 
   -- params:set("lfo_mxsynths_pan",2)
+  -- params:set("lfo_mxsynths_sub",2)
+  -- params:set("lfo_mxsynths_mod1",2)
+  -- params:set("lfo_mxsynths_mod2",2)
+  -- params:set("lfo_mxsynths_mod3",2)
+  -- params:set("lfo_mxsynths_mod4",2)
   return l
 end
 
@@ -222,12 +228,12 @@ function MxSynths:create_lfo_param(name,range,default)
     type='control',
     id="lfoperiod_mxsynths_"..name,
     name=name.." lfo period",
-  controlspec=controlspec.new(0,10,'lin',0.01,1,'s',0.01/10)}
+  controlspec=controlspec.new(0,60,'lin',0.1,math.random(1,60),'s',0.1/60)}
   params:add {
     type='control',
     id="lfophase_mxsynths_"..name,
     name=name.." lfo phase",
-  controlspec=controlspec.new(0,3,'lin',0.01,0.01,'s',0.01/3)}
+  controlspec=controlspec.new(0,3,'lin',0.01,math.random(1,300)/100,'s',0.01/3)}
 end
 
 function MxSynths:refresh_params()
