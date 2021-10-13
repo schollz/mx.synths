@@ -14,11 +14,12 @@ function MxSynths:new(args)
   local delay_last_clock=0
 
   -- add parameters
-  l.synths={"epiano","malone","toshiya","casio","piano","synthy","PolyPerc"}
+  l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
+  l.synths={"piano","epiano","malone","toshiya","casio","synthy","PolyPerc"}
   l.presets={}
   l.presets["synthy"]={"massive"}
 
-  params:add_group("MX.SYNTHS",19)
+  params:add_group("MX.SYNTHS",20+11*5)
 
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
@@ -104,7 +105,7 @@ function MxSynths:new(args)
       type='control',
       id="mxsynths_mod"..i,
       name="mod"..i,
-      controlspec=controlspec.new(0,1,'lin',0.01,0,'',0.01/1),
+      controlspec=controlspec.new(-1,1,'lin',0.01,0,'',0.01/2),
       action=function(x)
         engine.mx_set("mod"..i,x)
       end
@@ -123,7 +124,7 @@ function MxSynths:new(args)
 
   params:add {
     type='control',
-    id='mxsynths_lpf_mxsynths',
+    id='mxsynths_lpf',
     name='low-pass filter',
     controlspec=filter_freq,
     formatter=Formatters.format_freq,
@@ -134,7 +135,7 @@ function MxSynths:new(args)
 
   params:add {
     type='control',
-    id="mxsynths_delay_send",
+    id="mxsynths_delay",
     name="delay send",
     controlspec=controlspec.new(0,100,'lin',0,30,'%',1/100),
     action=function(x)
@@ -159,6 +160,18 @@ function MxSynths:new(args)
 
   params:add_option("mxsynths_pedal_mode","pedal mode",{"sustain","sostenuto"},1)
 
+  params:add_separator("lfos")
+  l:create_lfo_param("pan",{-1,1},{-0.5,0.5})
+  l:create_lfo_param("attack",{0,10},{0.01,0.05})
+  l:create_lfo_param("decay",{0,10},{1,2})
+  l:create_lfo_param("sustain",{0,1},{0.5,1})
+  l:create_lfo_param("release",{0,10},{0,2})
+  for i=1,4 do
+    l:create_lfo_param("mod"..i,{-1,1},{0.0,1.0})
+  end
+  l:create_lfo_param("lpf",{20,20000},{300,6000})
+  l:create_lfo_param("delay",{0,100},{0,100})
+
   -- osc.event=function(path,args,from)
   --   if path=="voice" then
   --     local voice_num=args[1]
@@ -173,7 +186,87 @@ function MxSynths:new(args)
   engine.mx_fxset("secondsPerBeat",clock.get_beat_sec())
 
   params:bang()
+  l:refresh_params()
+
+  clock.run(function()
+    while true do
+      clock.sleep(1/10)
+      l:lfo()
+    end
+  end)
+
+  -- params:set("lfo_mxsynths_pan",2)
   return l
+end
+
+function MxSynths:current_synth()
+  return self.synths[params:get("mxsynths_synth")]
+end
+
+function MxSynths:create_lfo_param(name,range,default)
+  params:add_option("lfo_mxsynths_"..name,name.." lfo",{"off","on"},1)
+  params:set_action("lfo_mxsynths_"..name,function(x)
+    self:refresh_params()
+  end)
+  params:add {
+    type='control',
+    id="lfolo_mxsynths_"..name,
+    name=name.." lfo lo",
+  controlspec=controlspec.new(range[1],range[2],'lin',0.01,default[1],'',0.01/(range[2]-range[1]))}
+  params:add {
+    type='control',
+    id="lfohi_mxsynths_"..name,
+    name=name.." lfo hi",
+  controlspec=controlspec.new(range[1],range[2],'lin',0.01,default[2],'',0.01/(range[2]-range[1]))}
+  params:add {
+    type='control',
+    id="lfoperiod_mxsynths_"..name,
+    name=name.." lfo period",
+  controlspec=controlspec.new(0,10,'lin',0.01,1,'s',0.01/10)}
+  params:add {
+    type='control',
+    id="lfophase_mxsynths_"..name,
+    name=name.." lfo phase",
+  controlspec=controlspec.new(0,3,'lin',0.01,0.01,'s',0.01/3)}
+end
+
+function MxSynths:refresh_params()
+  local lfoparms={"lo","hi","period","phase"}
+  for k,v in pairs(params.params) do
+    if v.id then
+      if self:has_prefix(v.id,"lfo_") then
+        if params:get(v.id)==2 then
+          -- lfo is on
+          for _,p in ipairs(lfoparms) do
+            params:show(v.id:gsub("lfo_","lfo"..p.."_"))
+          end
+        else
+          for _,p in ipairs(lfoparms) do
+            params:hide(v.id:gsub("lfo_","lfo"..p.."_"))
+          end
+        end
+      end
+    end
+  end
+  _menu.rebuild_params()
+end
+
+function MxSynths:lfo()
+  local t=clock.get_beats()*clock.get_beat_sec()
+  for _,lfoname in ipairs(self.lfos) do
+    if params:get("lfo_mxsynths_"..lfoname)==2 then
+      -- lfo is active
+      local val=math.sin(2*math.pi*t/params:get("lfoperiod_mxsynths_"..lfoname)+params:get("lfoperiod_mxsynths_"..lfoname))
+      val=util.linlin(-1,1,params:get("lfolo_mxsynths_"..lfoname),params:get("lfohi_mxsynths_"..lfoname),val)
+      params:set("mxsynths_"..lfoname,val)
+    end
+  end
+  -- check if any lfos are activated
+  -- if period==0 then
+  --   return 1
+  -- else
+  --   return math.sin(2*math.pi*current_time/period+offset)
+  -- end
 end
 
 function MxSynths:setup_midi()
@@ -240,6 +333,10 @@ function MxSynths:setup_midi()
   if #mididevice_list>1 then
     params:set("midi",2)
   end
+end
+
+function MxSynths:has_prefix(s,prefix)
+  return s:find(prefix,1,#prefix)~=nil
 end
 
 return MxSynths
