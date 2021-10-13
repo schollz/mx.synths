@@ -20,6 +20,14 @@ mx.synths has a bunch of different synths. each one has four "mod" parameters th
 
 all synths share a parameters which can be found in the `MX.SYNTHS` PSET menu. most the parameters are evident. one special parameter is called "sub". sub is synth specific (and not implemented in every synth) which activates some sound with low-note priority. many of the parameters have lfos.
 
+## ideas/roadmap
+
+- [ ] add BPeakEQ to the fx stage
+- [ ] add tremelo to the fx stage
+- [ ] add noise version of each synth (noise level, adsr)
+- [ ] add one-shot API for integrating into one-shot scripts
+- [ ] integrate into other scripts?
+
 ## the synths
 
 ![piano](https://user-images.githubusercontent.com/6550035/137188153-420d65bd-c950-4098-abb1-558795be86fa.png)
@@ -72,21 +80,3 @@ install with
 https://github.com/schollz/mx.synths
 
 
-## Todo
-
-
-- [ ] Each instrument can store 16 patterns, includes network connections and all instrument params
-- [ ] K1+K2 -> load pattern (instead of removing all, thats K1+E3)
-- [ ] K1+K3 toggles playing + saves to current pattern
-- [ ] K1+E2 -> changes current pattern
-- [ ] mx.samples, show the sample name
-
-# mx.synths
-norns script for polyphonic synths
-
-
-## ideas
-
-- [ ] add BPeakEQ to the fx stage
-- [ ] make control buses for each parameter?
-- [ ] add noise version of each synth (noise level, adsr)
