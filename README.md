@@ -29,7 +29,7 @@ all synths share a parameters which can be found in the `MX.SYNTHS` PSET menu. m
 
 ![epiano](https://user-images.githubusercontent.com/6550035/137188151-2bb3c65b-3885-422a-857c-859e9c0a146e.png)
 
-**epiano**: this is an electric piano based on FM rhodes type sounds.
+**epiano**: this is an electric piano based on FM rhodes type sounds. it is taken with minimal adjustments from [snappizz's FM Rhodes SynthDef](https://sccode.org/1-522).
 
 ![casio](https://user-images.githubusercontent.com/6550035/137188146-f893c656-6e16-4150-a72f-0057733f7f8d.png)
 
