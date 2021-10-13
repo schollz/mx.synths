@@ -18,10 +18,11 @@ mx.samples: like mr.coffee or mr.radar, but for instrument synths. (companion to
 
 mx.synths has a bunch of different synths. each one has four "mod" parameters that are synth specific. usually mods 2 and 3 are frequency and resonance respectively and usually mod 4 is detuning.
 
-all synths share a parameters which can be found in the `MX.SYNTHS` PSET menu. most the parameters are evident. one special parameter is called "sub". sub is synth specific (and not implemented in every synth) which activates some sound with low-note priority. many of the parameters have lfos.
+all synths share a parameters which can be found in the `MX.SYNTHS` PSET menu. most the parameters are evident. one special parameter is called "sub". sub is synth specific (and not implemented in every synth) which activates some sound with low-note priority. many of the parameters have lfos. since all synths share the parameters menu, you should *save your settings* if you find a patch you like (`PSET > SAVE`), so it is easier to come back to. I am planning making patch saving easiaer via the PSET (also making it synth specific).
 
 ## ideas/roadmap
 
+- [ ] synth-specific PSET save/load
 - [ ] add BPeakEQ to the fx stage
 - [ ] add tremelo to the fx stage
 - [ ] add noise version of each synth (noise level, adsr)
