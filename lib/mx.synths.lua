@@ -199,6 +199,10 @@ function MxSynths:new(args)
   return l
 end
 
+function MxSynths:current_synth()
+  return self.synths[params:get("mxsynths_synth")]
+end
+
 function MxSynths:create_lfo_param(name,range,default)
   params:add_option("lfo_mxsynths_"..name,name.." lfo",{"off","on"},1)
   params:set_action("lfo_mxsynths_"..name,function(x)
