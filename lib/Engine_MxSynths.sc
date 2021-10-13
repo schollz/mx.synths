@@ -107,8 +107,8 @@ Engine_MxSynths : CroneEngine {
 			freqBase=freq;
 			freqRes=SinOsc.kr(Rand(0.01,0.2),0).range(freqBase/2,freqBase*2)*res;
 			pdbase=Impulse.ar(freqBase);
-			pd=Phasor.ar(pdbase,2*pi*freqBase/s.sampleRate*phasing,0,2pi);
-			pdres=Phasor.ar(pdbase,2*pi*freqRes/s.sampleRate*phasing,0,2pi);
+			pd=Phasor.ar(pdbase,2*pi*freqBase/context.server.sampleRate*phasing,0,2pi);
+			pdres=Phasor.ar(pdbase,2*pi*freqRes/context.server.sampleRate*phasing,0,2pi);
 			pdi=LinLin.ar((2pi-pd).max(0),0,2pi,0,1);
 			snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase);
 			snd = LPF.ar(snd,Clip.kr(hz*artifacts,20,18000));
@@ -175,24 +175,29 @@ Engine_MxSynths : CroneEngine {
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
-			var snd,note,env, basshz,bass;
-			var detuning=0.04;
+			var snd,note,env, basshz,bass, detuning,pw, res,filt,detuningSpeed;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			
+			detuningSpeed=LinExp.kr(mod1,-1,1,0.1,10);
+			filt=LinLin.kr(mod2,-1,1,1,11);
+			res=LinExp.kr(mod3,-1,1,0.2,5);
+			detuning=LinExp.kr(mod4,-1,1,0.002,0.8);
+
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			snd=Mix.ar(Array.fill(2,{
 				arg i;
 				var hz_,snd_;
-				hz_=((2*hz).cpsmidi+SinOsc.kr(Rand(0.1,0.5),Rand(0,pi)).range(detuning.neg,detuning)).midicps;
+				hz_=((2*hz).cpsmidi+SinOsc.kr(detuningSpeed*Rand(0.1,0.5),Rand(0,pi)).range(detuning.neg,detuning)).midicps;
 				snd_=Pulse.ar(hz_,0.17);
 				snd_=snd_+Pulse.ar(hz_/2,0.17);
 				snd_=snd_+Pulse.ar(hz_*2,0.17);
 				snd_=snd_+LFTri.ar(hz_/4);
-				snd_=RLPF.ar(snd_,hz_*6,LFTri.kr([0.5,0.45]).range(0.3,1));
+				snd_=RLPF.ar(snd_,Clip.kr(hz_*filt,100,18000),LFTri.kr([0.5,0.45]).range(0.3,1)*res);
 				Pan2.ar(snd_,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/10
 			}));
-
-
+			
+			
 			basshz=hz;
 			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
 			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
@@ -201,10 +206,10 @@ Engine_MxSynths : CroneEngine {
 			bass = Pan2.ar(bass,LFTri.kr(1/6.12).range(-0.2,0.2));
 			bass = HPF.ar(bass,20);
 			bass = LPF.ar(bass,SinOsc.kr(0.1).range(2,5)*basshz);
-			snd=snd+(SinOsc.kr(0.123).range(0.2,1.0)*bass*sub.poll);
-
+			snd=snd+(SinOsc.kr(0.123).range(0.2,1.0)*bass*sub);
+			
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-			Out.ar(out,snd*env*amp/4);
+			Out.ar(out,snd*env*amp/8);
 		}).add;
 
 
@@ -213,13 +218,18 @@ Engine_MxSynths : CroneEngine {
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
-			var snd,filt,env;
+			var snd,filt,env,pw,co,gain,detune,note;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-			snd = Pulse.ar(hz, 0.5);
-			filt = MoogFF.ar(snd,1000,2);
+			pw=LinLin.kr(mod1,-1,1,0.1,0.9);
+			co=LinExp.kr(mod2,-1,1,hz,Clip.kr(10*hz,200,18000));
+			gain=LinLin.kr(mod3,-1,1,0.1,4);
+			detune=LinExp.kr(mod4,-1,1,0.00001,0.3);
+			note=hz.cpsmidi;
+			snd = Pulse.ar([note-detune,note+detune].midicps, pw);
+			snd = MoogFF.ar(snd,co,gain);
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
-			Out.ar(out,snd*env*amp/10);
+			Out.ar(out,snd*env*amp/12);
 		}).add;
 
 		// https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
