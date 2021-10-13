@@ -167,7 +167,7 @@ function MxSynths:new(args)
   l:create_lfo_param("sustain",{0,1},{0.5,1})
   l:create_lfo_param("release",{0,10},{0,2})
   for i=1,4 do
-    l:create_lfo_param("mod"..i,{-1,1},{0.0,1.0})
+    l:create_lfo_param("mod"..i,{-1,1},{-1.0,1.0})
   end
   l:create_lfo_param("lpf",{20,20000},{300,6000})
   l:create_lfo_param("delay",{0,100},{0,100})
@@ -222,12 +222,12 @@ function MxSynths:create_lfo_param(name,range,default)
     type='control',
     id="lfoperiod_mxsynths_"..name,
     name=name.." lfo period",
-  controlspec=controlspec.new(0,10,'lin',0.01,1,'s',0.01/10)}
+  controlspec=controlspec.new(0,60,'lin',0.1,math.random(1,60),'s',0.1/60)}
   params:add {
     type='control',
     id="lfophase_mxsynths_"..name,
     name=name.." lfo phase",
-  controlspec=controlspec.new(0,3,'lin',0.01,0.01,'s',0.01/3)}
+  controlspec=controlspec.new(0,3,'lin',0.01,math.random(1,300)/100,'s',0.01/3)}
 end
 
 function MxSynths:refresh_params()

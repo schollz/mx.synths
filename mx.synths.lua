@@ -63,6 +63,8 @@ function redraw()
     organ()
   elseif synth=="casio" then
     casio()
+  elseif synth=="synthy" then
+    saws()
   else
     generic()
   end
@@ -72,6 +74,37 @@ end
 
 function rerun()
   norns.script.load(norns.state.script)
+end
+
+local pospos={}
+for i=1,128 do
+  table.insert(pospos,i)
+end
+
+function saws()
+  local mod={0,0,0,0}
+  for i=1,4 do
+    mod[i]=params:get("mxsynths_mod"..i)
+  end
+  local h=util.linlin(-1,1,10,60,mod[1])
+  local p=util.linlin(-1,1,25,2,mod[2])
+  local n=math.floor(util.linlin(-1,1,1,15,mod[4]))
+  for i=1,128 do
+    local x=i
+    for j=1,n do
+      local y=61-h/(2*p)*(pospos[i]%(2*p))
+      y=y+math.sin(pospos[i]/util.linlin(-1,1,120,60,mod[3])*clock.get_beats()*clock.get_beat_sec()/100)*util.linlin(-1,1,0,20,mod[3])
+      screen.level(math.ceil(j/n*15))
+      y=y-(j-1)
+      if i>1 then
+        screen.line(x,y)
+        screen.stroke()
+      end
+      screen.move(x,y)
+    end
+  end
+  local next=table.remove(pospos,1)
+  table.insert(pospos,next)
 end
 
 function squares()
