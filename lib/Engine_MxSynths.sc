@@ -67,50 +67,59 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 		SynthDef("synthy",{
-			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
-			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
-			var snd,note,env;
+			var snd,note,env,detune,stereo,lowcut,chorus;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			sub=Lag.kr(sub,1);
 			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))*sub);
+			chorus=LinExp.kr(mod1,-1,1,0.097,10);
+			stereo=LinLin.kr(mod2,-1,1,0,1);
+			lowcut=LinExp.kr(mod3,-1,1,25,11000);
+			detune=LinExp.kr(mod4,-1,1,0.00001,0.3);
 			snd=snd+Mix.ar({
+				arg i;
 				var snd2;
-				snd2=SawDPW.ar(note.midicps);
-				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,2000,12000));
-				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/15 );
-				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))
+				snd2=SawDPW.ar((note+(detune*(i*2-1))).midicps);
+				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,lowcut,12000));
+				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/15*detune);
+				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine)*stereo)
 			}!2);
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
 		SynthDef("casio",{
-			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
-			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
-			var freq, env, freqBase, freqRes, pdbase, pd, pdres, pdi, snd;
+			var freq, env, freqBase, freqRes, pdbase, pd, pdres, pdi, snd,res,detuning,artifacts,phasing;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-			freq=hz;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+			artifacts=LinLin.kr(mod1,-1,1,1,10);
+			phasing=LinExp.kr(mod2,-1,1,0.125,8);
+			res=LinExp.kr(mod3,-1,1,0.1,10);
+			detuning=LinExp.kr(mod4,-1,1,0.000001,0.02);
+			freq=[hz*(1-detuning),hz*(1+detuning)];
 			freqBase=freq;
-			freqRes=SinOsc.kr(Rand(0,0.2),0).range(freqBase/2,freqBase*2);
+			freqRes=SinOsc.kr(Rand(0.01,0.2),0).range(freqBase/2,freqBase*2)*res;
 			pdbase=Impulse.ar(freqBase);
-			pd=Phasor.ar(pdbase,2*pi*freqBase/context.server.sampleRate,0,2pi);
-			pdres=Phasor.ar(pdbase,2*pi*freqRes/context.server.sampleRate,0,2pi);
+			pd=Phasor.ar(pdbase,2*pi*freqBase/s.sampleRate*phasing,0,2pi);
+			pdres=Phasor.ar(pdbase,2*pi*freqRes/s.sampleRate*phasing,0,2pi);
 			pdi=LinLin.ar((2pi-pd).max(0),0,2pi,0,1);
-			snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase).dup;
-			pan = Lag.kr(pan,0.1);
-			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
+			snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase);
+			snd = LPF.ar(snd,Clip.kr(hz*artifacts,20,18000));
+			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
 		// port of STK's Rhodey (yamaha DX7-style Fender Rhodes) https://sccode.org/1-522
 		SynthDef("epiano",{
-			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
-			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 
 			// all of these range from 0 to 1
@@ -141,8 +150,8 @@ Engine_MxSynths : CroneEngine {
 
 
 		SynthDef("toshiya",{
-			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
-			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,note,env;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
@@ -163,8 +172,8 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 		SynthDef("malone",{
-			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
-			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,note,env, basshz,bass;
 			var detuning=0.04;
@@ -201,8 +210,8 @@ Engine_MxSynths : CroneEngine {
 
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
 		SynthDef("PolyPerc",{
-			arg out=0,hz=220,amp=0.5,gate=1,sub=0,portamento=1,
-			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,filt,env;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
@@ -215,9 +224,9 @@ Engine_MxSynths : CroneEngine {
 
 		// https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
 		SynthDef("piano",{
-			arg out=0,hz=220,amp=0.5,pan=0,gate=1,
+			arg out=0,hz=220,amp=1.0,pan=0,gate=1,
 			sub=0,portamento=1,
-			attack=1.0,decay=0.2,sustain=0.9,release=5,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,duration=600;
 			var snd,note,env, damp;
 			var noise, string, delaytime, lpf, noise_env, damp_mul;
