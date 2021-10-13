@@ -57,6 +57,10 @@ function redraw()
     piano()
   elseif synth=="toshiya" then
     tree_scene()
+  elseif synth=="PolyPerc" then
+    squares()
+  elseif synth=="malone" then
+    organ()
   else
     generic()
   end
@@ -66,6 +70,30 @@ end
 
 function rerun()
   norns.script.load(norns.state.script)
+end
+
+function squares()
+  local mod={0,0,0,0}
+  for i=1,4 do
+    mod[i]=params:get("mxsynths_mod"..i)
+  end
+  local w=util.linlin(-1,1,10,127,mod[2])
+  local h=util.linlin(-1,1,10,63,mod[3])
+  local n=util.linlin(-1,1,1,15,mod[1])
+  for i=1,n do
+    local w1=w/n*i
+    local h1=h/n*i
+    local x=(127-w1)/2+1
+    local y=(64-h1)/2
+    screen.level(math.ceil(15/n*i))
+    screen.rect(x,y,w1,h1)
+    if i==1 then
+      screen.level(math.floor(util.linlin(-1,1,1,15.99,mod[4])))
+      screen.fill()
+    else
+      screen.stroke()
+    end
+  end
 end
 
 function generic()
@@ -80,6 +108,67 @@ function generic()
   end
 end
 
+function organ()
+  local mod={0,0,0,0}
+  for i=1,4 do
+    mod[i]=params:get("mxsynths_mod"..i)
+  end
+
+  math.randomseed(43)
+  local rs={}
+  local ctl={}
+  local rtotal=0
+  for i=1,30 do
+    local r=math.random()*8+2
+    if rtotal+r<63 then
+      table.insert(rs,r)
+      table.insert(ctl,math.random(1,4))
+      rtotal=rtotal+r
+    end
+  end
+  table.sort(rs)
+
+  local x=1
+  for i,r in ipairs(rs) do
+    r=math.random(90,110)/100*r
+    local h=util.linlin(-1,1,1,math.random(30,60),mod[ctl[i]])
+    if i%2==0 then
+      h=util.linlin(-1,1,math.random(30,60),1,mod[ctl[i]])
+    end
+    local y=64-h
+    if i==1 then
+      screen.move(x-r,y)
+    end
+    screen.level(5)
+    screen.circle(x+r,y,r)
+    screen.fill()
+    screen.level(1)
+    screen.circle(x+r,y+2,r)
+    screen.fill()
+    screen.level(0)
+    screen.circle(x+r,y+r/3,r)
+    screen.fill()
+    screen.level(15)
+    screen.circle(x+r,y,r)
+    screen.stroke()
+
+    screen.move(x,y)
+    screen.line(x,64)
+    screen.stroke()
+    screen.move(x+2*r,y)
+    screen.line(x+2*r,64)
+    screen.stroke()
+    screen.level(5)
+    screen.move(x+2*r-1,y+5)
+    screen.line(x+2*r-1,64)
+    screen.stroke()
+    screen.level(1)
+    screen.move(x+2*r-2,y+8)
+    screen.line(x+2*r-2,64)
+    screen.stroke()
+    x=x+r*2
+  end
+end
 function piano()
   local m1=util.linlin(-1,1,10,30,params:get("mxsynths_mod1"))
   local radius=math.floor(m1)
