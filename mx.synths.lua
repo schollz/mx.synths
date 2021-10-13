@@ -61,6 +61,8 @@ function redraw()
     squares()
   elseif synth=="malone" then
     organ()
+  elseif synth=="casio" then
+    casio()
   else
     generic()
   end
@@ -169,6 +171,47 @@ function organ()
     x=x+r*2
   end
 end
+
+function casio()
+  local mod={0,0,0,0}
+  for i=1,4 do
+    mod[i]=params:get("mxsynths_mod"..i)
+  end
+  screen.font_face(37)
+  screen.font_size(18)
+  screen.level(5)
+  screen.text_center_rotate(21,32,"CASIO",-90)
+  screen.level(15)
+  screen.rect(6,5,20,55)
+  screen.stroke()
+  local x=28
+  local y=20
+  for i=0,5 do
+    screen.move(x+i*2,y-i*3)
+    screen.line(x+i*2,y+20-i*3)
+    screen.stroke()
+  end
+
+  screen.rect(40,1,128-40,64-1)
+  screen.stroke()
+  for i=1,4 do
+    local x=30+i*20
+    local y=10
+    screen.move(x+3,8)
+    screen.line(x+3,56)
+    screen.stroke()
+    screen.level(0)
+    local h=util.linlin(-1,1,40,5,mod[i])
+    screen.rect(x,h,6,20)
+    screen.fill()
+    screen.level(15)
+    screen.rect(x,h,6,20)
+    screen.stroke()
+  end
+  screen.font_face(1)
+  screen.font_size(8)
+end
+
 function piano()
   local m1=util.linlin(-1,1,10,30,params:get("mxsynths_mod1"))
   local radius=math.floor(m1)
