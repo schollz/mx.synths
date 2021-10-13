@@ -128,6 +128,12 @@ Engine_MxSynths : CroneEngine {
 			var osc1, osc2, osc3, osc4, snd;
 			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+
+			lfoDepth=LinExp.kr(mod1,-1,1,0.01,1);
+			mix=LinLin.kr(mod2,-1,1,0.0,0.4);
+			modIndex=LinExp.kr(mod3,-1,1,0.01,4);
+			lfoSpeed=LinLin.kr(mod4,-1,1,0,0.5);
+
 			lfoSpeed = lfoSpeed * 12;
 
 			hz = hz * 2;
