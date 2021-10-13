@@ -25,15 +25,6 @@ each synth has a specific style that can be tweakable via "mod" parameters. thei
 
 since all synths share the parameters menu, you should save your settings if you find a patch you like (`PSET > SAVE`), so it is easier to come back to. I am planning making patch saving easiaer via the PSET (also making it synth specific).
 
-### ideas/roadmap
-
-- [ ] synth-specific PSET save/load
-- [ ] add BPeakEQ to the fx stage
-- [ ] add tremelo to the fx stage
-- [ ] add noise version of each synth (noise level, adsr)
-- [ ] add one-shot API for integrating into one-shot scripts
-- [ ] integrate into other scripts?
-
 ### the synths
 
 ![piano](https://user-images.githubusercontent.com/6550035/137188153-420d65bd-c950-4098-abb1-558795be86fa.png)
@@ -88,9 +79,17 @@ the `<duration>` is the number of seconds to automatically release. it effective
 engine.mx_note_off(<midi>)
 ```
 
+### limitations
+
+there are a couple limitations that may become obvious when you spend time with mx.synths. 
+
+first - while you *can* play multiple synth voices simultaneously, the way I wrote the engine is such that only all synth voices will voice-steal from each other if they are playing the same note. (also currently there isn't a engine command to send all the parameters, rather the parameters are gathered from the PSET menu, but that can be added soon). 
+
+second - polyphony is not limited in the engine, but it will be limited by the norns cpu. probably 4-6 polyphony is the max for most synths. setting a quick release if you can will help with this. the synths could also be better optimized I'm sure.
 
 
-### contributions
+
+### making your own synth
 
 any and all contributions are welcome and accepted.
 
@@ -132,10 +131,22 @@ once you finish, you can paste it into the `Engine_MxSynths.sc`, like [around he
 
 
 
-## thanks
-
+## Thanks
 
 this script wouldn't exist without @zebra, who gave me lots of guidance in SuperCollider in general and also the "piano" is from their [DreadMoon engine](https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41). thanks also to @tehn, a version of [PolyPerc](https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc) is in this engine. and thanks to [@snappiz](https://sccode.org/snappizz) which the "epiano" is adapted.
+
+
+
+## Ideas/Roadmap
+
+- [ ] synth-specific PSET save/load
+- [ ] add BPeakEQ to the fx stage
+- [ ] add tremelo to the fx stage
+- [ ] add noise version of each synth (noise level, adsr)
+- [ ] add one-shot API for integrating into one-shot scripts
+- [ ] integrate into other scripts?
+
+
 
 ## Install
 
