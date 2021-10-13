@@ -1,11 +1,16 @@
 -- mx.synths v0.0.1
--- ?
+-- 
 --
 -- llllllll.co/t/mx-synths
 --
--- 1. plug in a midi controller
--- 2. select a synth.
--- 3. profit.
+--
+--
+--    ▼ instructions below ▼
+-- K2/K3 changes instrument
+-- E1 controls mod1
+-- E2 controls mod2
+-- E3 controls mod3
+-- K1+any E controls mod4
 
 local UI=require "ui"
 

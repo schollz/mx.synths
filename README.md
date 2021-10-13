@@ -19,11 +19,13 @@ https://vimeo.com/631313246
 - K1+any E controls mod4
 
 
-mx.synths has a bunch of different synths. each one has four "mod" parameters that are synth specific. usually mods 2 and 3 are frequency and resonance respectively and usually mod 4 is detuning.
+mx.synths has a bunch of different synths. each synth is polyphonic, and while their is no limit on polyphony the cpu will likely cause dropouts beyond a polyphony of 4-6 (depends on the synth). 
 
-all synths share a parameters which can be found in the `MX.SYNTHS` PSET menu. most the parameters are evident. one special parameter is called "sub". sub is synth specific (and not implemented in every synth) which activates some sound with low-note priority. many of the parameters have lfos. since all synths share the parameters menu, you should *save your settings* if you find a patch you like (`PSET > SAVE`), so it is easier to come back to. I am planning making patch saving easiaer via the PSET (also making it synth specific).
+each synth has a specific style that can be tweakable via "mod" parameters. their are four mod parameters and they are synth-specific, though usually mods 2 and 3 are frequency and resonance respectively and usually mod 4 is detuning. all other parameters - found in the `MX.SYNTHS` PSET menu - are shared for each synth. most the parameters are evident (delay send, adsr, etc.) but one special parameter is called "sub". sub is synth specific (and not implemented in every synth) which activates some sound with low-note priority. many of the parameters have lfos. 
 
-## ideas/roadmap
+since all synths share the parameters menu, you should save your settings if you find a patch you like (`PSET > SAVE`), so it is easier to come back to. I am planning making patch saving easiaer via the PSET (also making it synth specific).
+
+### ideas/roadmap
 
 - [ ] synth-specific PSET save/load
 - [ ] add BPeakEQ to the fx stage
@@ -32,7 +34,7 @@ all synths share a parameters which can be found in the `MX.SYNTHS` PSET menu. m
 - [ ] add one-shot API for integrating into one-shot scripts
 - [ ] integrate into other scripts?
 
-## the synths
+### the synths
 
 ![piano](https://user-images.githubusercontent.com/6550035/137188153-420d65bd-c950-4098-abb1-558795be86fa.png)
 
@@ -63,6 +65,22 @@ all synths share a parameters which can be found in the `MX.SYNTHS` PSET menu. m
 ![polyperc](https://user-images.githubusercontent.com/6550035/137188141-7d1aad4d-2c2a-43c5-ab17-33bdb555966b.png)
 
 **PolyPerc**: this is the classic PolyPerc engine from @tehn, with some adjustments.
+
+### usage as library
+
+mx.synths can be included in other libraries. its probably easiest to change the engine and import the menu library:
+
+```lua
+engine.name="MxSynths"
+local mxsynths_=include("mx.synths/lib/mx.synths")
+mxsynths=mxsynths_:new()
+```
+
+now you can edit the current sound by directly editing the parameters, as all the parameters will update the engine.
+
+
+
+
 
 ### contributions
 

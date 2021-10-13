@@ -293,7 +293,7 @@ Engine_MxSynths : CroneEngine {
 
 		// intialize helper functions
 		fnNoteOn= {
-			arg note,amp;
+			arg note,amp,duration;
 			var lowestNote=10000;
 			var sub=0;
 			(mxParameters.at("synth")++" note_on "++note).postln;
@@ -342,6 +342,7 @@ Engine_MxSynths : CroneEngine {
 					\mod2,mxParameters.at("mod2"),
 					\mod3,mxParameters.at("mod3"),
 					\mod4,mxParameters.at("mod4"),
+					\duration,duration,
 				]);
 			);
 			mxVoicesOn.put(note,1);
@@ -392,16 +393,16 @@ Engine_MxSynths : CroneEngine {
 		};
 
 		// add norns commands
-		this.addCommand("mx_note_on", "if", { arg msg;
+		this.addCommand("mx_note_on", "iff", { arg msg;
 			var lowestNote=10000;
 			var note=msg[1];
 			if (mxVoices.at(note)!=nil,{
 				if (mxVoices.at(note).isRunning==true,{
 					(mxParameters.at("synth")++" retrigger "++note).postln;
 					mxVoices.at(note).set(\gate,0);
-					fnNoteOn.(msg[1],msg[2]);
-				},{ fnNoteOn.(msg[1],msg[2]); });
-			},{  fnNoteOn.(msg[1],msg[2]); });
+				});
+			});
+			fnNoteOn.(msg[1],msg[2],msg[3]);
 		});	
 
 		this.addCommand("mx_note_off", "i", { arg msg;

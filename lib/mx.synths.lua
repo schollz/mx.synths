@@ -24,13 +24,17 @@ function MxSynths:new(args)
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
   params:set_action("mxsynths_synth",function(x)
-    engine.mx_set_synth(l.synths[x])
+    if engine.name="MxSynths"  then
+      engine.mx_set_synth(l.synths[x])
+    end
   end)
 
   -- polyphony selector
   params:add_option("mxsynths_polyphony","polyphony",{"polyphonic","monophonic"},1)
   params:set_action("mxsynths_polyphony",function(x)
-    engine.mx_set("monophonic",x-1)
+    if engine.name="MxSynths"  then
+      engine.mx_set("monophonic",x-1)
+    end
   end)
 
   -- amp
@@ -39,7 +43,9 @@ function MxSynths:new(args)
     return ((val<0) and "" or "+")..val.." dB"
   end}
   params:set_action("mxsynths_amp",function(x)
-    engine.mx_set("amp",util.dbamp(x))
+    if engine.name="MxSynths"  then
+      engine.mx_set("amp",util.dbamp(x))
+    end
   end)
 
   params:add{type="control",id="mxsynths_sub",name="sub",controlspec=controlspec.new(-96,20,'lin',1,-9,'',1/(20+96)),formatter=function(v)
@@ -47,7 +53,9 @@ function MxSynths:new(args)
     return ((val<0) and "" or "+")..val.." dB"
   end}
   params:set_action("mxsynths_sub",function(x)
-    engine.mx_set("sub",util.dbamp(x))
+    if engine.name="MxSynths"  then
+      engine.mx_set("sub",util.dbamp(x))
+    end
   end)
 
   params:add {
@@ -56,7 +64,9 @@ function MxSynths:new(args)
     name="pan",
     controlspec=controlspec.new(-1,1,'lin',0,0),
     action=function(x)
-      engine.mx_set("pan",x)
+      if engine.name="MxSynths"  then
+        engine.mx_set("pan",x)
+      end
     end
   }
 
@@ -66,7 +76,9 @@ function MxSynths:new(args)
     name="attack",
     controlspec=controlspec.new(0,10,'lin',0.01,0.01,'s',0.01/10),
     action=function(x)
-      engine.mx_set("attack",x)
+      if engine.name="MxSynths"  then
+        engine.mx_set("attack",x)
+      end
     end
   }
 
@@ -76,7 +88,9 @@ function MxSynths:new(args)
     name="decay",
     controlspec=controlspec.new(0,10,'lin',0,1,'s'),
     action=function(x)
-      engine.mx_set("decay",x)
+      if engine.name="MxSynths"  then
+        engine.mx_set("decay",x)
+      end
     end
   }
 
@@ -86,7 +100,9 @@ function MxSynths:new(args)
     name="sustain",
     controlspec=controlspec.new(0,2,'lin',0,0.9,'amp'),
     action=function(x)
-      engine.mx_set("sustain",x)
+      if engine.name="MxSynths"  then
+        engine.mx_set("sustain",x)
+      end
     end
   }
 
@@ -96,7 +112,9 @@ function MxSynths:new(args)
     name="release",
     controlspec=controlspec.new(0,10,'lin',0,1,'s'),
     action=function(x)
-      engine.mx_set("release",x)
+      if engine.name="MxSynths"  then
+        engine.mx_set("release",x)
+      end
     end
   }
 
@@ -107,7 +125,9 @@ function MxSynths:new(args)
       name="mod"..i,
       controlspec=controlspec.new(-1,1,'lin',0.01,0,'',0.01/2),
       action=function(x)
-        engine.mx_set("mod"..i,x)
+        if engine.name="MxSynths"  then
+          engine.mx_set("mod"..i,x)
+        end
       end
     }
   end
@@ -118,7 +138,9 @@ function MxSynths:new(args)
     name="tune",
     controlspec=controlspec.new(-100,100,'lin',0,0,'cents',1/200),
     action=function(x)
-      engine.mx_set("tune",x/100)
+      if engine.name="MxSynths"  then
+        engine.mx_set("tune",x/100)
+      end
     end
   }
 
@@ -129,7 +151,9 @@ function MxSynths:new(args)
     controlspec=filter_freq,
     formatter=Formatters.format_freq,
     action=function(x)
-      engine.mx_fxset("lpf",x)
+      if engine.name="MxSynths"  then
+        engine.mx_fxset("lpf",x)
+      end
     end
   }
 
@@ -139,7 +163,9 @@ function MxSynths:new(args)
     name="delay send",
     controlspec=controlspec.new(0,100,'lin',0,30,'%',1/100),
     action=function(x)
-      engine.mx_fxset("delay",x/100)
+      if engine.name="MxSynths"  then
+        engine.mx_fxset("delay",x/100)
+      end
     end
   }
 
@@ -149,13 +175,17 @@ function MxSynths:new(args)
     name="delay iterations",
     controlspec=controlspec.new(0,100,'lin',0,11,'beats',1/100),
     action=function(x)
-      engine.mx_fxset("delayFeedback",x/100)
+      if engine.name="MxSynths"  then
+        engine.mx_fxset("delayFeedback",x/100)
+      end
     end
   }
 
   params:add_option("mxsynths_delay_rate","delay rate",delay_rates_names,3)
   params:set_action("mxsynths_delay_rate",function(x)
-    engine.mx_fxset("delayBeats",delay_rates[x])
+    if engine.name="MxSynths"  then
+      engine.mx_fxset("delayBeats",delay_rates[x])
+    end
   end)
 
   params:add_option("mxsynths_pedal_mode","pedal mode",{"sustain","sostenuto"},1)
@@ -184,7 +214,9 @@ function MxSynths:new(args)
   --   end
   -- end
 
-  engine.mx_fxset("secondsPerBeat",clock.get_beat_sec())
+  if engine.name="MxSynths"  then
+    engine.mx_fxset("secondsPerBeat",clock.get_beat_sec())
+  end
 
   params:bang()
   l:refresh_params()
@@ -303,7 +335,7 @@ function MxSynths:setup_midi()
           do return end
         end
         if d.type=="note_on" then
-          engine.mx_note_on(d.note,d.vel/127/2+0.5)
+          engine.mx_note_on(d.note,d.vel/127/2+0.5,600)
         elseif d.type=="note_off" then
           engine.mx_note_off(d.note)
         elseif d.cc==64 then -- sustain pedal
