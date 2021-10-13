@@ -230,7 +230,7 @@ Engine_MxSynths : CroneEngine {
 			noise_hz=LinExp.kr(mod1,-1,1,200,16000);
 			tune_up=1+LinLin.kr(mod2,-1,1,0.0001,0.0005*4);
 			tune_down=1-LinLin.kr(mod2,-1,1,0.00005,0.0004*4);
-			lpf_ratio=LinLin.kr(mod3,-1,1,0.1,4);
+			lpf_rq=LinLin.kr(mod3,-1,1,0.1,8);
 			string_decay=LinLin.kr(mod4,-1,1,0.01,6);
 			
 			hz=Lag.kr(hz,portamento);
