@@ -89,7 +89,7 @@ Engine_MxSynths : CroneEngine {
 				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine)*stereo)
 			}!2);
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-			Out.ar(out,snd*env*amp/5);
+			Out.ar(out,snd*env*amp/8);
 		}).add;
 
 		SynthDef("casio",{

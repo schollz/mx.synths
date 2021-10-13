@@ -15,11 +15,11 @@ function MxSynths:new(args)
 
   -- add parameters
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
-  l.synths={"piano","epiano","malone","toshiya","casio","synthy","PolyPerc"}
+  l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc"}
   l.presets={}
   l.presets["synthy"]={"massive"}
 
-  params:add_group("MX.SYNTHS",20+11*5)
+  params:add_group("MX.SYNTHS",20+12*5)
 
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
@@ -162,6 +162,7 @@ function MxSynths:new(args)
 
   params:add_separator("lfos")
   l:create_lfo_param("pan",{-1,1},{-0.5,0.5})
+  l:create_lfo_param("sub",{-96,10},{-36,-5})
   l:create_lfo_param("attack",{0,10},{0.01,0.05})
   l:create_lfo_param("decay",{0,10},{1,2})
   l:create_lfo_param("sustain",{0,1},{0.5,1})
@@ -196,6 +197,7 @@ function MxSynths:new(args)
   end)
 
   -- params:set("lfo_mxsynths_pan",2)
+  -- params:set("lfo_mxsynths_sub",2)
   -- params:set("lfo_mxsynths_mod1",2)
   -- params:set("lfo_mxsynths_mod2",2)
   -- params:set("lfo_mxsynths_mod3",2)
