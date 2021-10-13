@@ -15,7 +15,7 @@ function MxSynths:new(args)
 
   -- add parameters
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
-  l.synths={"epiano","malone","toshiya","casio","piano","synthy","PolyPerc"}
+  l.synths={"piano","epiano","malone","toshiya","casio","synthy","PolyPerc"}
   l.presets={}
   l.presets["synthy"]={"massive"}
 
