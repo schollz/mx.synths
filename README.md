@@ -19,9 +19,9 @@ https://vimeo.com/631313246
 - K1+any E controls mod4
 
 
-mx.synths has a bunch of different synths. each synth is polyphonic, and while their is no limit on polyphony the cpu will likely cause dropouts beyond a polyphony of 4-6 (depends on the synth). 
+mx.synths is a collection of eclectic polyphonic synths.
 
-each synth has a specific style that can be tweakable via "mod" parameters. their are four mod parameters and they are synth-specific, though usually mods 2 and 3 are frequency and resonance respectively and usually mod 4 is detuning. all other parameters - found in the `MX.SYNTHS` PSET menu - are shared for each synth. most the parameters are evident (delay send, adsr, etc.) but one special parameter is called "sub". sub is synth specific (and not implemented in every synth) which activates some sound with low-note priority. many of the parameters have lfos. 
+each synth has a specific style that can be tweakable via "mod" parameters. their are four mod parameters and they are synth-specific (though usually mods 2 and 3 are frequency and resonance respectively and usually mod 4 is detuning). all other parameters - found in the `MX.SYNTHS` PSET menu - are shared for each synth. most the parameters are evident (delay send, adsr, etc.). one special parameter is called "sub". sub is synth specific (and not implemented in every synth) which activates some sound with low-note priority. many of the parameters have lfos. 
 
 since all synths share the parameters menu, you should save your settings if you find a patch you like (`PSET > SAVE`), so it is easier to come back to. I am planning making patch saving easiaer via the PSET (also making it synth specific).
 
@@ -83,10 +83,9 @@ engine.mx_note_off(<midi>)
 
 there are a couple limitations that may become obvious when you spend time with mx.synths. 
 
-first - while you *can* play multiple synth voices simultaneously, the way I wrote the engine is such that only all synth voices will voice-steal from each other if they are playing the same note. (also currently there isn't a engine command to send all the parameters, rather the parameters are gathered from the PSET menu, but that can be added soon). 
+first - while you *can* play multiple synth voices simultaneously, the way I wrote the engine is such that only all synth voices will voice-steal from each other if they are playing the *same note*. (also currently there isn't a engine command to send all the parameters, rather the parameters are gathered from the PSET menu, but that can be added soon). 
 
 second - polyphony is not limited in the engine, but it will be limited by the norns cpu. probably 4-6 polyphony is the max for most synths. setting a quick release if you can will help with this. the synths could also be better optimized I'm sure.
-
 
 
 ### making your own synth
