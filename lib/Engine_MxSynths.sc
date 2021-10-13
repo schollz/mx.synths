@@ -6,7 +6,7 @@ Engine_MxSynths : CroneEngine {
 	var mxVoicesOn;
 	var mxSynthFX;
 	var mxBusFx;
-	var fnNoteOn, fnNoteOff;
+	var fnNoteOn, fnNoteOff, updateSub;
 	var pedalSustainOn=false;
 	var pedalSostenutoOn=false;
 	var pedalSustainNotes;
@@ -70,22 +70,22 @@ Engine_MxSynths : CroneEngine {
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
-			var snd,note,env,detune,stereo,lowcut,chorus;
+			var snd,note,env,detune,stereo,lowcut,chorus,res;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			sub=Lag.kr(sub,1);
 			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))*sub);
-			chorus=LinExp.kr(mod1,-1,1,0.097,10);
-			stereo=LinLin.kr(mod2,-1,1,0,1);
-			lowcut=LinExp.kr(mod3,-1,1,25,11000);
+			stereo=LinLin.kr(mod1,-1,1,0,1);
+			lowcut=LinExp.kr(mod2,-1,1,25,11000);
+			res=LinExp.kr(mod3,-1,1,0.25,1.75);
 			detune=LinExp.kr(mod4,-1,1,0.00001,0.3);
 			snd=snd+Mix.ar({
 				arg i;
 				var snd2;
 				snd2=SawDPW.ar((note+(detune*(i*2-1))).midicps);
-				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,lowcut,12000));
-				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/15*detune);
+				snd2=RLPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,lowcut,12000),res);
+				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/15);
 				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine)*stereo)
 			}!2);
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
@@ -153,20 +153,26 @@ Engine_MxSynths : CroneEngine {
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
-			var snd,note,env;
+			var snd,note,env,detune,stereo,lowcut,chorus,klanky,klankyvol;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			detune=LinExp.kr(mod1,-1,1,0.001,0.1);
+			klankyvol=LinLin.kr(mod2,-1,1,0,2);
+			lowcut=LinExp.kr(mod3,-1,1,25,11000);
+			chorus=LinExp.kr(mod4,-1,1,0.2,5);
+			
 			note=Lag.kr(hz,portamento).cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			sub=Lag.kr(sub,1);
 			snd=Pan2.ar(SinOsc.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))/12*amp,SinOsc.kr(0.1,mul:0.2))*sub;
 			snd=snd+Mix.ar({
+				arg i;
 				var snd2;
-				snd2=SinOsc.ar(note.midicps);
-				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,200,12000),2);
-				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/NRand(10,20,3) );
+				snd2=SinOsc.ar((note+(detune*(i*2-1))).midicps);
+				snd2=LPF.ar(snd2,LinExp.kr(SinOsc.kr(rrand(1/30,1/10),rrand(0,2*pi)),-1,1,lowcut,12000),2);
+				snd2=DelayC.ar(snd2, rrand(0.01,0.03), LFNoise1.kr(Rand(5,10),0.01,0.02)/NRand(10,20,3)*chorus );
 				Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))
 			}!2);
-			snd=snd+(Amplitude.kr(snd)*VarLag.kr(LFNoise0.kr(1),1,warp:\sine).range(0.1,1.0)*Klank.ar(`[[hz, hz*2+23, hz*4+53, hz*8+23], nil, [1, 1, 1, 1]], PinkNoise.ar([0.007, 0.007])));
+			snd=snd+(Amplitude.kr(snd)*VarLag.kr(LFNoise0.kr(1),1,warp:\sine).range(0.1,1.0)*klankyvol*Klank.ar(`[[hz, hz*2+2, hz*4+5, hz*8+2], nil, [1, 1, 1, 1]], PinkNoise.ar([0.007, 0.007])));
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/8);
 		}).add;
@@ -179,8 +185,8 @@ Engine_MxSynths : CroneEngine {
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			
 			detuningSpeed=LinExp.kr(mod1,-1,1,0.1,10);
-			filt=LinLin.kr(mod2,-1,1,1,11);
-			res=LinExp.kr(mod3,-1,1,0.2,5);
+			filt=LinLin.kr(mod2,-1,1,2,10);
+			res=LinExp.kr(mod3,-1,1,0.25,4);
 			detuning=LinExp.kr(mod4,-1,1,0.002,0.8);
 
 			note=Lag.kr(hz,portamento).cpsmidi;
@@ -193,7 +199,7 @@ Engine_MxSynths : CroneEngine {
 				snd_=snd_+Pulse.ar(hz_/2,0.17);
 				snd_=snd_+Pulse.ar(hz_*2,0.17);
 				snd_=snd_+LFTri.ar(hz_/4);
-				snd_=RLPF.ar(snd_,Clip.kr(hz_*filt,100,18000),LFTri.kr([0.5,0.45]).range(0.3,1)*res);
+				snd_=RLPF.ar(snd_,Clip.kr(hz_*filt,hz_*1.5,16000),Clip.kr(LFTri.kr([0.5,0.45]).range(0.3,1)*res,0.2,2));
 				Pan2.ar(snd_,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/10
 			}));
 			
@@ -220,9 +226,9 @@ Engine_MxSynths : CroneEngine {
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,filt,env,pw,co,gain,detune,note;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-			pw=LinLin.kr(mod1,-1,1,0.1,0.9);
+			pw=LinLin.kr(mod1,-1,1,0.3,0.7);
 			co=LinExp.kr(mod2,-1,1,hz,Clip.kr(10*hz,200,18000));
-			gain=LinLin.kr(mod3,-1,1,0.1,4);
+			gain=LinLin.kr(mod3,-1,1,0.25,3);
 			detune=LinExp.kr(mod4,-1,1,0.00001,0.3);
 			note=hz.cpsmidi;
 			snd = Pulse.ar([note-detune,note+detune].midicps, pw);
@@ -351,21 +357,32 @@ Engine_MxSynths : CroneEngine {
 				},{
 					// remove the sound
 					mxVoices.at(note).set(\gate,0);
-					// swap sub
-					mxVoicesOn.keysValuesDo({ arg key, syn;
-						if (key<lowestNote,{
-							lowestNote=key;
-						});
-					});
-					if (lowestNote<10000,{
-						("swapping sub to "++lowestNote).postln;
-						mxVoices.at(note).set(\sub,0);
-						mxVoices.at(lowestNote).set(\sub,mxParameters.at("sub"));
-					});
+					updateSub.();
 				});
 			});
 
 
+		};
+
+		updateSub = {
+			var lowestNote=10000;
+			// swap sub
+			mxVoicesOn.keysValuesDo({ arg note, syn;
+				if (note<lowestNote,{
+					lowestNote=note;
+				});
+				("note "++note++" lowestNote "++lowestNote).postln;
+			});
+			mxVoicesOn.keysValuesDo({ arg note, syn;
+				("checking note "++note++" lowestNote "++lowestNote).postln;
+				if (note.asInteger>lowestNote.asInteger,{
+					"not lowest note".postln;
+					mxVoices.at(note).set(\sub,0);
+				},{
+					"found lowest note".postln;
+					mxVoices.at(note).set(\sub,mxParameters.at("sub"));
+				});
+			});
 		};
 
 		// add norns commands
@@ -435,7 +452,9 @@ Engine_MxSynths : CroneEngine {
 			("setting "++key++" to "++val).postln;
 			mxParameters.put(key,val);
 			switch (key, 
-				"sub",{}, 	// do nothing, is special
+				"sub",{
+					updateSub.();
+				}, 	// update sub
 				"synth",{}, // do nothing
 				"amp",{}, 	// do nothing
 				"attack",{}, 	// do nothing

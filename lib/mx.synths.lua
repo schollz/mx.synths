@@ -167,7 +167,7 @@ function MxSynths:new(args)
   l:create_lfo_param("sustain",{0,1},{0.5,1})
   l:create_lfo_param("release",{0,10},{0,2})
   for i=1,4 do
-    l:create_lfo_param("mod"..i,{-1,1},{-1.0,1.0})
+    l:create_lfo_param("mod"..i,{-1,1},{-0.5,0.5})
   end
   l:create_lfo_param("lpf",{20,20000},{300,6000})
   l:create_lfo_param("delay",{0,100},{0,100})
@@ -196,6 +196,10 @@ function MxSynths:new(args)
   end)
 
   -- params:set("lfo_mxsynths_pan",2)
+  -- params:set("lfo_mxsynths_mod1",2)
+  -- params:set("lfo_mxsynths_mod2",2)
+  -- params:set("lfo_mxsynths_mod3",2)
+  -- params:set("lfo_mxsynths_mod4",2)
   return l
 end
 
