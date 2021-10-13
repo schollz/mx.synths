@@ -2,6 +2,9 @@
 
 mx.samples: like mr.coffee or mr.radar, but for instrument synths. (companion to [mx.samples](https://github.com/schollz/mx.samples)).
 
+https://vimeo.com/631313246
+
+
 ## Requirements
 
 - norns
