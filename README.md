@@ -76,15 +76,61 @@ local mxsynths_=include("mx.synths/lib/mx.synths")
 mxsynths=mxsynths_:new()
 ```
 
-now you can edit the current sound by directly editing the parameters, as all the parameters will update the engine.
+now you can edit the current sound by directly editing the parameters, as all the parameters will update the engine. to then play a note you can use
 
+```lua
+engine.mx_note_on(<midi>,<amp>,<duration>)
+```
 
+the `<duration>` is the number of seconds to automatically release. it effectively lets you choose whether it will play as a "one-shot" synth. if you want it to be "one-shot" then set the duration to the duration you want and it will be released after. if you want to instead use it with note off signals, then you should set `<duration>` to a large number (like 600 seconds). then you can tell it when you want to do the release by sending a subsequent command:
+
+```lua
+engine.mx_note_off(<midi>)
+```
 
 
 
 ### contributions
 
-please feel free to contribute your own synth! its quite easy - you can simply make a SynthDef and design it so it can be modulated by 4 parameters that vary between -1 and +1. see the code for examples. you can make a graphics screen if you want too, or use a default one.
+any and all contributions are welcome and accepted.
+
+making your own synth is a simple process. there are three basic steps.
+
+1. make your SynthDef. start with a basic SynthDef like this:
+
+```supercollider
+SynthDef("yoursynth",{
+    arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+    attack=0.01,decay=0.2,sustain=0.9,release=5,
+    mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
+    var snd,env,pw;
+    mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+    hz=Lag.kr(hz,portamento).cpsmidi;
+    env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+
+    // <yoursynth>
+    
+    // (optional but recommended) map the mods to something/
+    // mods always are limited to [-1,1]
+    pw=LinLin.kr(mod1,-1,1,0.2,0.8);
+
+    // make some sound
+    snd = Pulse.ar(hz,width:pw);
+    
+    // </yoursynth>
+
+    snd = Pan2.ar(snd,Lag.kr(pan,0.1));
+    Out.ar(out,snd*env*amp/8);
+}).add;
+```
+
+once you finish, you can paste it into the `Engine_MxSynths.sc`, like [around here](https://github.com/schollz/mx.synths/blob/main/lib/Engine_MxSynths.sc#L35).
+
+2. add "your synth" to the registry. edit `l.synths` in the [lib/mx.synths.lua](https://github.com/schollz/mx.synths/blob/7a1ed748fb2836828ead289af0524019ca901592/lib/mx.synths.lua#L18) script to include the name of your synth. make sure it matches exactly what you named your SynthDef is step #1.
+
+3. (optional) add some graphics for your synth. simply write a function that draws something to the screen and update `redraw()` [in mx.synths.lua](https://github.com/schollz/mx.synths/blob/7a1ed748fb2836828ead289af0524019ca901592/mx.synths.lua#L75) to run your function when it is selected.
+
+
 
 ## thanks
 
