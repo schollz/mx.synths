@@ -139,6 +139,7 @@ this script wouldn't exist without @zebra, who gave me lots of guidance in Super
 
 ## Ideas/Roadmap
 
+- [ ] fix monophonic/portamento
 - [ ] synth-specific PSET save/load
 - [ ] add BPeakEQ to the fx stage
 - [ ] add tremelo to the fx stage
