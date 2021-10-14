@@ -166,12 +166,10 @@ this script wouldn't exist without @zebra, who gave me lots of guidance in Super
 
 ## Ideas/Roadmap
 
-- [ ] fix monophonic/portamento
-- [ ] synth-specific PSET save/load
+- [ ] add monophonic/portamento
 - [ ] add BPeakEQ to the fx stage
 - [ ] add tremelo to the fx stage
 - [ ] add noise version of each synth (noise level, adsr)
-- [ ] add one-shot API for integrating into one-shot scripts
 - [ ] integrate into other scripts?
 
 
