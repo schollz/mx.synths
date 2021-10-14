@@ -413,9 +413,17 @@ Engine_MxSynths : CroneEngine {
 			pedalSustainOn=(msg[1]==1);
 			if (pedalSustainOn==false,{
 				// release all sustained notes
+				// that aren't currently being held down
 				pedalSustainNotes.keysValuesDo({ arg note, val; 
-					fnNoteOff.(note);
-					pedalSustainNotes.removeAt(note);
+					if (mxVoicesOn.at(note)==nil,{
+						fnNoteOff.(note);
+						pedalSustainNotes.removeAt(note);
+					});
+				});
+			},{
+				// add currently down notes to the pedal
+				mxVoicesOn.keysValuesDo({ arg note, val; 
+					pedalSustainNotes.put(note,1);
 				});
 			});
 		});
@@ -424,9 +432,12 @@ Engine_MxSynths : CroneEngine {
 			pedalSostenutoOn=(msg[1]==1);
 			if (pedalSostenutoOn==false,{
 				// release all sustained notes
+				// that aren't currently being held down
 				pedalSostenutoNotes.keysValuesDo({ arg note, val; 
-					fnNoteOff.(note);
+					if (mxVoicesOn.at(note)==nil,{
+						fnNoteOff.(note);
 					pedalSostenutoNotes.removeAt(note);
+					});
 				});
 			},{
 				// add currently held notes
