@@ -29,7 +29,11 @@ since all synths share the parameters menu, you should save your settings if you
 
 ![piano](https://user-images.githubusercontent.com/6550035/137188153-420d65bd-c950-4098-abb1-558795be86fa.png)
 
-**piano**: this is an 'acoustic piano'-like synth from @zebra's [DreadMoon engine](https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41). it is essentialy noise being filtered through a comb filter. the mod parameters can make it sound more like a drum than a piano sometimes.
+**piano**: this is an 'acoustic piano'-like synth from @zebra's [DreadMoon engine](https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41). it is essentialy noise being filtered through a comb filter. the mod parameters can make it sound more like a drum than a piano sometimes. mods:
+1. decay
+2. noise freq
+3. resonance
+4. detuning
 
 
 ![epiano](https://user-images.githubusercontent.com/6550035/137188151-2bb3c65b-3885-422a-857c-859e9c0a146e.png)
