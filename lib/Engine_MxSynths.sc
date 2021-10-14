@@ -201,9 +201,9 @@ Engine_MxSynths : CroneEngine {
 				arg i;
 				var hz_,snd_;
 				hz_=((2*hz).cpsmidi+SinOsc.kr(detuningSpeed*Rand(0.1,0.5),Rand(0,pi)).range(detuning.neg,detuning)).midicps;
-				snd_=Pulse.ar(hz_,0.17);
-				snd_=snd_+Pulse.ar(hz_/2,0.17);
-				snd_=snd_+Pulse.ar(hz_*2,0.17);
+				snd_=PulseDPW.ar(hz_,0.17);
+				snd_=snd_+PulseDPW.ar(hz_/2,0.17);
+				snd_=snd_+PulseDPW.ar(hz_*2,0.17);
 				snd_=snd_+LFTri.ar(hz_/4);
 				snd_=RLPF.ar(snd_,Clip.kr(hz_*filt,hz_*1.5,16000),Clip.kr(LFTri.kr([0.5,0.45]).range(0.3,1)*res,0.2,2));
 				Pan2.ar(snd_,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/10
@@ -213,7 +213,7 @@ Engine_MxSynths : CroneEngine {
 			basshz=hz;
 			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
 			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
-			bass=Pulse.ar(basshz,width:SinOsc.kr(1/3).range(0.2,0.4));
+			bass=PulseDPW.ar(basshz,width:SinOsc.kr(1/3).range(0.2,0.4));
 			bass=bass+LPF.ar(WhiteNoise.ar(SinOsc.kr(1/rrand(3,4)).range(1,rrand(3,4))),2*basshz);
 			bass = Pan2.ar(bass,LFTri.kr(1/6.12).range(-0.2,0.2));
 			bass = HPF.ar(bass,20);
@@ -258,16 +258,16 @@ Engine_MxSynths : CroneEngine {
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 
 			// mods
-			noise_hz=LinExp.kr(mod1,-1,1,200,16000);
-			tune_up=1+LinLin.kr(mod2,-1,1,0.0001,0.0005*4);
-			tune_down=1-LinLin.kr(mod2,-1,1,0.00005,0.0004*4);
+			string_decay=LinLin.kr(mod1,-1,1,0.1,6);
+			noise_hz=LinExp.kr(mod2,-1,1,200,16000);
 			lpf_rq=LinLin.kr(mod3,-1,1,0.1,8);
-			string_decay=LinLin.kr(mod4,-1,1,0.01,6);
+			tune_up=1+LinLin.kr(mod4,-1,1,0.0001,0.0005*4);
+			tune_down=1-LinLin.kr(mod4,-1,1,0.00005,0.0004*4);
 			
 			hz=Lag.kr(hz,portamento);
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
-			damp=mod1;
+			damp = 0;
 			damp_mul = LagUD.ar(K2A.ar(1.0 - damp), 0, damp_time);
 
 			noise_env = Decay2.ar(Impulse.ar(0));

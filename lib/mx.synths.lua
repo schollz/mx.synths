@@ -188,7 +188,7 @@ function MxSynths:new(args)
     type='control',
     id="mxsynths_delay",
     name="delay send",
-    controlspec=controlspec.new(0,100,'lin',0,30,'%',1/100),
+    controlspec=controlspec.new(0,100,'lin',0,10,'%',1/100),
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_fxset("delay",x/100)
@@ -250,7 +250,10 @@ function MxSynths:new(args)
 
   l.ready=false
 
-  params:read(_path.data.."mx.synths/default.pset")
+  if util.file_exists(_path.data.."mx.synths/default.pset") then 
+    params:read(_path.data.."mx.synths/default.pset")
+  end
+  params:bang()
   l:refresh_params()
   l:run()
 
