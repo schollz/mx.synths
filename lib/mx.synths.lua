@@ -18,8 +18,13 @@ function MxSynths:new(args)
   l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc"}
   l.presets={}
   l.presets["synthy"]={"massive"}
+  -- https://sumire-io.gitlab.io/midi-velocity-curve-generator/
+  l.velocities={}
+  l.velocities[1]={1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 38, 41, 43, 46, 49, 52, 55, 57, 60, 62, 64, 66, 68, 70, 71, 73, 74, 76, 77, 79, 80, 81, 83, 84, 85, 86, 87, 89, 90, 91, 92, 93, 94, 95, 95, 96, 97, 98, 99, 99, 100, 101, 102, 102, 103, 104, 104, 105, 105, 106, 106, 107, 107, 108, 108, 109, 109, 109, 110, 110, 111, 111, 111, 112, 112, 112, 112, 113, 113, 113, 114, 114, 114, 114, 115, 115, 115, 115, 115, 116, 116, 116, 116, 116, 117, 117, 117, 117, 118, 118, 118, 118, 118, 119, 119, 119, 120, 120, 120, 120, 121, 121, 121, 122, 122, 122, 123, 123, 124, 124, 124, 125, 125, 126, 126, 127}
+  l.velocities[2]={0, 2, 3, 4, 6, 7, 8, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23, 25, 26, 27, 29, 30, 31, 33, 34, 35, 37, 38, 39, 40, 42, 43, 44, 45, 47, 48, 49, 50, 52, 53, 54, 55, 57, 58, 59, 60, 61, 62, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 92, 93, 94, 95, 96, 97, 97, 98, 99, 100, 100, 101, 102, 103, 103, 104, 105, 106, 106, 107, 108, 109, 109, 110, 111, 111, 112, 113, 113, 114, 115, 115, 116, 117, 117, 118, 119, 119, 120, 120, 121, 122, 122, 123, 124, 124, 125, 126, 126, 127}
+  l.velocities[3]={1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 18, 18, 19, 20, 20, 21, 22, 23, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 43, 44, 45, 47, 48, 49, 51, 52, 54, 55, 57, 58, 60, 62, 63, 65, 66, 68, 70, 72, 73, 75, 77, 79, 80, 82, 84, 86, 88, 90, 92, 94, 95, 97, 99, 101, 103, 105, 107, 109, 111, 113, 115, 117, 119, 121, 123, 125, 127}
 
-  params:add_group("MX.SYNTHS",20+12*5)
+  params:add_group("MX.SYNTHS",21+12*5)
 
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
@@ -128,7 +133,7 @@ function MxSynths:new(args)
       end
     end
   }
-
+  
   params:add {
     type='control',
     id="mxsynths_release",
@@ -219,6 +224,13 @@ function MxSynths:new(args)
   end)
 
   params:add_option("mxsynths_pedal_mode","pedal mode",{"sustain","sostenuto"},1)
+
+  params:add_option("mxsynths_sensitivity","velocity sensitivity",{"delicate","normal","stiff"},2)
+  params:set_action("mxsynths_sensitivity",function(x)
+      if engine.name=="MxSynths" then
+        l:save()
+      end
+  end)
 
   params:add_separator("lfos")
   l:create_lfo_param("pan",{-1,1},{-0.5,0.5})
@@ -412,7 +424,7 @@ function MxSynths:setup_midi()
           do return end
         end
         if d.type=="note_on" then
-          engine.mx_note_on(d.note,d.vel/127/2+0.5,600)
+          engine.mx_note_on(d.note,self.velocities[params:get("mxsynths_sensitivity")][math.floor(d.vel+1)]/127,600)
         elseif d.type=="note_off" then
           engine.mx_note_off(d.note)
         elseif d.cc==64 then -- sustain pedal
