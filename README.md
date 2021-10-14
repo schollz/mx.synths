@@ -137,7 +137,7 @@ SynthDef("yoursynth",{
     // <yoursynth>
     
     // (optional but recommended) map the mods to something/
-    // mods always are limited to [-1,1]
+    // mods always sent as [-1,1] so they need to be mapped:
     pw=LinLin.kr(mod1,-1,1,0.2,0.8);
 
     // make some sound
