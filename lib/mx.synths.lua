@@ -22,10 +22,21 @@ function MxSynths:new(args)
   params:add_group("MX.SYNTHS",20+12*5)
 
   -- synth selector
+  l.loading=false
   params:add_option("mxsynths_synth","synth",l.synths,1)
   params:set_action("mxsynths_synth",function(x)
+    if loading then 
+      do return end 
+    end
+    l.loading=true
     if engine.name=="MxSynths"  then
       engine.mx_set_synth(l.synths[x])
+      params:read(_path.data.."mx.synths/mx/mx-0"..x..".pset")
+      params:set("mxsynths_synth",x,true)
+      clock.run(function()
+        clock.sleep(0.1)
+        l.loading=false
+      end)
     end
   end)
 
@@ -46,6 +57,7 @@ function MxSynths:new(args)
   params:set_action("mxsynths_amp",function(x)
     if engine.name=="MxSynths"  then
       engine.mx_set("amp",util.dbamp(x))
+      l:save("amp")
     end
   end)
 
@@ -232,15 +244,12 @@ function MxSynths:new(args)
     engine.mx_fxset("secondsPerBeat",clock.get_beat_sec())
   end
 
+  l.ready=false
+
+  params:default()
   params:bang()
   l:refresh_params()
-
-  clock.run(function()
-    while true do
-      clock.sleep(1/10)
-      l:lfo()
-    end
-  end)
+  l:run()
 
   -- params:set("lfo_mxsynths_pan",2)
   -- params:set("lfo_mxsynths_sub",2)
@@ -248,7 +257,55 @@ function MxSynths:new(args)
   -- params:set("lfo_mxsynths_mod2",2)
   -- params:set("lfo_mxsynths_mod3",2)
   -- params:set("lfo_mxsynths_mod4",2)
+
+  l.ready=true
   return l
+end
+
+function MxSynths:run()
+  self.waiting_to_save=false
+  self.debouncer=10
+  clock.run(function()
+    while true do
+      clock.sleep(1/10)
+      self:lfo()
+      if self.debouncer>0 then 
+        self.debouncer=self.debouncer-1
+      end
+    end
+  end)
+end
+
+function MxSynths:save(pname)
+  if not self.ready then 
+    do return end
+  end
+  if self.loading then 
+    do return end 
+  end
+  local has_lfo=pcall(function() params:get("lfo_mxsynths_"..pname) end)
+  if has_lfo then
+    if params:get("lfo_mxsynths_"..pname)==2 then 
+      do return end 
+    end
+  end
+  -- reset debounce
+  self.debouncer=10
+  if self.waiting_to_save then 
+    do return end 
+  end
+  self.waiting_to_save=true
+  clock.run(function()
+    print("waiting to save")
+    while self.debouncer>0 do
+      clock.sleep(1)
+      print(self.debouncer)
+    end
+    print("saving "..self.synths[params:get("mxsynths_synth")])
+    -- save for current synth
+    params:write(_path.data.."mx.synths/mx/mx-0"..params:get("mxsynths_synth")..".pset",self.synths[params:get("mxsynths_synth")])
+    self.waiting_to_save=false
+  end)
 end
 
 function MxSynths:current_synth()
