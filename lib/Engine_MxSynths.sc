@@ -286,7 +286,6 @@ Engine_MxSynths : CroneEngine {
 		// initialize fx synth and bus
 		context.server.sync;
 		mxBusFx = Bus.audio(context.server,2);
-		mxBusFx.postln;
 		context.server.sync;
 		mxSynthFX = Synth.new("mxfx",[\out,0,\inBus,mxBusFx]);
 		context.server.sync;
@@ -296,11 +295,10 @@ Engine_MxSynths : CroneEngine {
 			arg note,amp,duration;
 			var lowestNote=10000;
 			var sub=0;
-			(mxParameters.at("synth")++" note_on "++note).postln;
+			// (mxParameters.at("synth")++" note_on "++note).postln;
 
 			// if monophonic, remove all the other sounds
 			if (mxParameters.at("monophonic")>0,{
-				"turning off monophonic voices".postln;
 				mxVoicesOn.keysValuesDo({ arg key, syn;
 					mxVoicesOn.removeAt(key);
 					mxVoices.at(key).set(\gate,0);
@@ -324,7 +322,7 @@ Engine_MxSynths : CroneEngine {
 				sub=1;
 			});
 
-			("sub at "++(sub*mxParameters.at("sub"))).postln;
+			// ("sub at "++(sub*mxParameters.at("sub"))).postln;
 
 			mxVoices.put(note,
 				Synth.before(mxSynthFX,mxParameters.at("synth"),[
@@ -352,7 +350,7 @@ Engine_MxSynths : CroneEngine {
 		fnNoteOff = {
 			arg note;
 			var lowestNote=10000;
-			("mx_note_off "++note).postln;
+			// ("mx_note_off "++note).postln;
 
 			mxVoicesOn.removeAt(note);
 
@@ -378,15 +376,12 @@ Engine_MxSynths : CroneEngine {
 				if (note<lowestNote,{
 					lowestNote=note;
 				});
-				("note "++note++" lowestNote "++lowestNote).postln;
+				// ("note "++note++" lowestNote "++lowestNote).postln;
 			});
 			mxVoicesOn.keysValuesDo({ arg note, syn;
-				("checking note "++note++" lowestNote "++lowestNote).postln;
 				if (note.asInteger>lowestNote.asInteger,{
-					"not lowest note".postln;
 					mxVoices.at(note).set(\sub,0);
 				},{
-					"found lowest note".postln;
 					mxVoices.at(note).set(\sub,mxParameters.at("sub"));
 				});
 			});
@@ -398,7 +393,7 @@ Engine_MxSynths : CroneEngine {
 			var note=msg[1];
 			if (mxVoices.at(note)!=nil,{
 				if (mxVoices.at(note).isRunning==true,{
-					(mxParameters.at("synth")++" retrigger "++note).postln;
+					// (mxParameters.at("synth")++" retrigger "++note).postln;
 					mxVoices.at(note).set(\gate,0);
 				});
 			});
@@ -449,14 +444,14 @@ Engine_MxSynths : CroneEngine {
 
 		this.addCommand("mx_set_synth","s",{ arg msg;
 			var val=msg[1].asSymbol;
-			("setting synth to "++val).postln;
+			// ("setting synth to "++val).postln;
 			mxParameters.put("synth",val.asSymbol);
 		});
 
 		this.addCommand("mx_set","sf",{ arg msg;
 			var key=msg[1].asString;
 			var val=msg[2];
-			("setting "++key++" to "++val).postln;
+			// ("setting "++key++" to "++val).postln;
 			mxParameters.put(key,val);
 			switch (key, 
 				"sub",{

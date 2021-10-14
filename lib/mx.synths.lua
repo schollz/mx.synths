@@ -22,21 +22,11 @@ function MxSynths:new(args)
   params:add_group("MX.SYNTHS",20+12*5)
 
   -- synth selector
-  l.loading=false
   params:add_option("mxsynths_synth","synth",l.synths,1)
   params:set_action("mxsynths_synth",function(x)
-    if loading then 
-      do return end 
-    end
-    l.loading=true
     if engine.name=="MxSynths"  then
       engine.mx_set_synth(l.synths[x])
-      params:read(_path.data.."mx.synths/mx/mx-0"..x..".pset")
-      params:set("mxsynths_synth",x,true)
-      clock.run(function()
-        clock.sleep(0.1)
-        l.loading=false
-      end)
+      l:save()
     end
   end)
 
@@ -45,6 +35,7 @@ function MxSynths:new(args)
   params:set_action("mxsynths_polyphony",function(x)
     if engine.name=="MxSynths"  then
       engine.mx_set("monophonic",x-1)
+      l:save()
     end
   end)
   params:hide("mxsynths_polyphony")
@@ -57,7 +48,7 @@ function MxSynths:new(args)
   params:set_action("mxsynths_amp",function(x)
     if engine.name=="MxSynths"  then
       engine.mx_set("amp",util.dbamp(x))
-      l:save("amp")
+      l:save()
     end
   end)
 
@@ -68,6 +59,7 @@ function MxSynths:new(args)
   params:set_action("mxsynths_sub",function(x)
     if engine.name=="MxSynths"  then
       engine.mx_set("sub",util.dbamp(x))
+      l:save()
     end
   end)
 
@@ -79,6 +71,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_set("pan",x)
+        l:save()
       end
     end
   }
@@ -91,6 +84,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_set("portamento",x)
+        l:save()
       end
     end
   }
@@ -104,6 +98,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_set("attack",x)
+        l:save()
       end
     end
   }
@@ -116,6 +111,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_set("decay",x)
+        l:save()
       end
     end
   }
@@ -128,6 +124,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_set("sustain",x)
+        l:save()
       end
     end
   }
@@ -140,6 +137,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_set("release",x)
+        l:save()
       end
     end
   }
@@ -153,6 +151,7 @@ function MxSynths:new(args)
       action=function(x)
         if engine.name=="MxSynths"  then
           engine.mx_set("mod"..i,x)
+          l:save()
         end
       end
     }
@@ -166,6 +165,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_set("tune",x/100)
+        l:save()
       end
     end
   }
@@ -179,6 +179,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_fxset("lpf",x)
+        l:save()
       end
     end
   }
@@ -191,6 +192,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_fxset("delay",x/100)
+        l:save()
       end
     end
   }
@@ -203,6 +205,7 @@ function MxSynths:new(args)
     action=function(x)
       if engine.name=="MxSynths"  then
         engine.mx_fxset("delayFeedback",x/100)
+        l:save()
       end
     end
   }
@@ -211,6 +214,7 @@ function MxSynths:new(args)
   params:set_action("mxsynths_delay_rate",function(x)
     if engine.name=="MxSynths"  then
       engine.mx_fxset("delayBeats",delay_rates[x])
+      l:save()
     end
   end)
 
@@ -246,8 +250,7 @@ function MxSynths:new(args)
 
   l.ready=false
 
-  params:default()
-  params:bang()
+  params:read(_path.data.."mx.synths/default.pset")
   l:refresh_params()
   l:run()
 
@@ -270,6 +273,9 @@ function MxSynths:run()
       clock.sleep(1/10)
       self:lfo()
       if self.debouncer>0 then 
+        if self.debouncer==1 then 
+          params:write(_path.data.."mx.synths/default.pset")
+        end
         self.debouncer=self.debouncer-1
       end
     end
@@ -280,9 +286,6 @@ function MxSynths:save(pname)
   if not self.ready then 
     do return end
   end
-  if self.loading then 
-    do return end 
-  end
   local has_lfo=pcall(function() params:get("lfo_mxsynths_"..pname) end)
   if has_lfo then
     if params:get("lfo_mxsynths_"..pname)==2 then 
@@ -291,21 +294,21 @@ function MxSynths:save(pname)
   end
   -- reset debounce
   self.debouncer=10
-  if self.waiting_to_save then 
-    do return end 
-  end
-  self.waiting_to_save=true
-  clock.run(function()
-    print("waiting to save")
-    while self.debouncer>0 do
-      clock.sleep(1)
-      print(self.debouncer)
-    end
-    print("saving "..self.synths[params:get("mxsynths_synth")])
-    -- save for current synth
-    params:write(_path.data.."mx.synths/mx/mx-0"..params:get("mxsynths_synth")..".pset",self.synths[params:get("mxsynths_synth")])
-    self.waiting_to_save=false
-  end)
+  -- if self.waiting_to_save then 
+  --   do return end 
+  -- end
+  -- self.waiting_to_save=true
+  -- clock.run(function()
+  --   print("waiting to save")
+  --   while self.debouncer>0 do
+  --     clock.sleep(1)
+  --     print(self.debouncer)
+  --   end
+  --   print("saving "..self.synths[params:get("mxsynths_synth")])
+  --   -- save for current synth
+  --   params:write(_path.data.."mx.synths/mx/mx-0"..params:get("mxsynths_synth")..".pset",self.synths[params:get("mxsynths_synth")])
+  --   self.waiting_to_save=false
+  -- end)
 end
 
 function MxSynths:current_synth()
