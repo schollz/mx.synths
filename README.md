@@ -97,6 +97,17 @@ since all synths share the parameters menu, you should save your settings if you
 
 <br>
 
+![icarus2](https://user-images.githubusercontent.com/6550035/137646567-42b73f96-0ed1-43cf-9424-21a4e882ba03.png)
+
+**icarus**: this a slight modification of the [icarus script](https://llllllll.co/t/icarus/43271). mods:
+1. feedback
+2. delay time
+3. PWM width
+4. detuning
+
+<br>
+
+
 ### usage as library
 
 mx.synths can be included in other libraries. its probably easiest to change the engine and import the menu library:
