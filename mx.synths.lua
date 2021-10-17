@@ -1,5 +1,5 @@
 -- mx.synths v0.0.1
--- 
+--
 --
 -- llllllll.co/t/mx-synths
 --
@@ -72,6 +72,8 @@ function redraw()
     saws()
   elseif synth=="epiano" then
     epiano()
+  elseif synth=="icarus" then
+    icarus()
   else
     generic()
   end
@@ -81,6 +83,78 @@ end
 
 function rerun()
   norns.script.load(norns.state.script)
+end
+
+function icarus()
+  local current_time=clock.get_beats()*clock.get_beat_sec()
+  local mod={0,0,0,0}
+  for i=1,4 do
+    mod[i]=params:get("mxsynths_mod"..i)
+  end
+  -- make the sun curve in the sky based on delay time
+  local delay_range={0.05,0.5}
+  local rdelay=util.linlin(-1,1,270,90,mod[2])
+  local center={64,32}
+  local rpos={center[1]+40*math.sin(math.rad(rdelay)),center[2]+40*math.cos(math.rad(rdelay))}
+  local rfeedback=util.linlin(-1,1,4,20,mod[1])
+  local rvolume=util.linlin(-1,1,4,8,math.sin(clock.get_beat_sec()*clock.get_beats()/5))
+  local rlow=rfeedback
+  local rhigh=rfeedback+rvolume
+  for i=rhigh,rlow,-1 do
+    local ll=math.floor(util.linlin(rlow,rhigh,14,1,i))
+    screen.level(ll)
+    i=i*math.pow(1.5,1/ll)
+    screen.circle(rpos[1],rpos[2]+10,i)
+    screen.fill()
+  end
+  screen.level(15)
+  screen.circle(rpos[1],rpos[2]+10,rfeedback)
+  screen.fill()
+  screen.update()
+  -- the ocean
+  local rfilter=util.linlin(-1,1,62,20,mod[3])
+  local horizon=math.floor(rfilter)
+  screen.update()
+  math.randomseed(4)
+  screen.level(0)
+  screen.rect(0,rfilter,129,65)
+  screen.fill()
+  for y=0,64 do
+    local z=64/(y+1)
+    for i=0,z*5 do
+      x=(rnd(160)+current_time*160/z)%150-16
+      w=cos(rnd()+current_time)*12/z
+      if (w>0) then
+        local s=screen.peek(math.floor(x),math.floor(horizon-1-y/2),math.floor(x+1),math.floor(horizon-y/2))
+        if s~=nil then
+          local pgot=util.clamp(string.byte(s,1),1,15)
+          screen.level(pgot+1)
+          screen.move(x-w,y+horizon)
+          screen.line(x+w,y+horizon)
+          screen.stroke()
+        end
+      end
+    end
+  end
+end
+
+--- Cos of value
+-- Value is expected to be between 0..1 (instead of 0..360)
+-- @param x value
+function cos(x)
+  return math.cos(math.rad(x*360))
+end
+
+function rnd(x)
+  if x==0 then
+    return 0
+  end
+  if (not x) then
+    x=1
+  end
+  x=x*100
+  x=math.random(x)/100
+  return x
 end
 
 function epiano()

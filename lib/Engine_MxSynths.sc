@@ -116,6 +116,66 @@ Engine_MxSynths : CroneEngine {
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
+		SynthDef("icarus",{
+			arg out=0,hz=220,amp=1.0,gate=1,sub=1.0,portamento=1,
+			attack=0.1,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=1;
+			var bass,basshz,feedback=0.5,delaytime=0.25, delaytimelag=0.1;
+			var ender,snd,local,in,ampcheck,env,detuning=0.1,pwmcenter=0.5,pwmwidth=0.4,pwmfreq=1.5;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+
+			feedback=LinLin.kr(mod1,-1,1,0.1,2);
+			delaytime=LinLin.kr(mod2,-1,1,0.05,0.6);
+			pwmwidth=LinLin.kr(mod3,-1,1,0.1,0.9);
+			detuning=LinExp.kr(mod4,-1,1,0.01,1);
+
+			hz=Lag.kr(hz,portamento);
+			snd=Mix.new({VarSaw.ar(
+				hz+(SinOsc.kr(LFNoise0.kr(1),Rand(0,3))*
+					(((hz).cpsmidi+1).midicps-(hz))*detuning),
+				width:LFTri.kr(pwmfreq+rrand(0.1,0.3),mul:pwmwidth/2,add:pwmcenter),
+				mul:0.25
+			)}!2);
+			snd=snd+Mix.new({VarSaw.ar(
+				hz/2+(SinOsc.kr(LFNoise0.kr(1),Rand(0,3))*
+					(((hz/2).cpsmidi+1).midicps-(hz/2))*detuning),
+				width:LFTri.kr(pwmfreq+rrand(0.1,0.3),mul:pwmwidth/2,add:pwmcenter),
+				mul:0.15
+			)}!2);
+
+			basshz=hz;
+			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
+			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
+			bass=PulseDPW.ar(basshz,width:SinOsc.kr(1/3).range(0.2,0.4));
+			bass=bass+LPF.ar(WhiteNoise.ar(SinOsc.kr(1/rrand(3,4)).range(1,rrand(3,4))),2*basshz);
+			bass = Pan2.ar(bass,LFTri.kr(1/6.12).range(-0.2,0.2));
+			bass = HPF.ar(bass,20);
+			bass = LPF.ar(bass,SinOsc.kr(0.1).range(2,5)*basshz);
+
+
+			ampcheck = Amplitude.kr(Mix.ar(snd));
+			snd = snd * (ampcheck > 0.02); // noise gate
+			local = LocalIn.ar(2);
+			local = OnePole.ar(local, 0.4);
+			local = OnePole.ar(local, -0.08);
+			local = Rotate2.ar(local[0], local[1],0.2);
+			local = DelayC.ar(local, 0.5,
+				Lag.kr(delaytime,0.2)
+			);
+			local = LeakDC.ar(local);
+			local = ((local + snd) * 1.25).softclip;
+
+			LocalOut.ar(local*Lag.kr(feedback,1));
+
+
+			snd= Balance2.ar(local[0],local[1],pan);
+			snd=snd+(SinOsc.kr(0.123,Rand(0,3)).range(0.2,1.0)*bass*sub);
+
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+
+			Out.ar(out,snd*env*amp/8);
+		}).add;
+
 		// port of STK's Rhodey (yamaha DX7-style Fender Rhodes) https://sccode.org/1-522
 		SynthDef("epiano",{
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
