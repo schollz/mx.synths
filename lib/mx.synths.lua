@@ -15,21 +15,21 @@ function MxSynths:new(args)
 
   -- add parameters
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
-  l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc"}
+  l.synths={"icarus","piano","epiano","casio","malone","toshiya","synthy","PolyPerc"}
   l.presets={}
   l.presets["synthy"]={"massive"}
   -- https://sumire-io.gitlab.io/midi-velocity-curve-generator/
   l.velocities={}
-  l.velocities[1]={1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 38, 41, 43, 46, 49, 52, 55, 57, 60, 62, 64, 66, 68, 70, 71, 73, 74, 76, 77, 79, 80, 81, 83, 84, 85, 86, 87, 89, 90, 91, 92, 93, 94, 95, 95, 96, 97, 98, 99, 99, 100, 101, 102, 102, 103, 104, 104, 105, 105, 106, 106, 107, 107, 108, 108, 109, 109, 109, 110, 110, 111, 111, 111, 112, 112, 112, 112, 113, 113, 113, 114, 114, 114, 114, 115, 115, 115, 115, 115, 116, 116, 116, 116, 116, 117, 117, 117, 117, 118, 118, 118, 118, 118, 119, 119, 119, 120, 120, 120, 120, 121, 121, 121, 122, 122, 122, 123, 123, 124, 124, 124, 125, 125, 126, 126, 127}
-  l.velocities[2]={0, 2, 3, 4, 6, 7, 8, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23, 25, 26, 27, 29, 30, 31, 33, 34, 35, 37, 38, 39, 40, 42, 43, 44, 45, 47, 48, 49, 50, 52, 53, 54, 55, 57, 58, 59, 60, 61, 62, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 92, 93, 94, 95, 96, 97, 97, 98, 99, 100, 100, 101, 102, 103, 103, 104, 105, 106, 106, 107, 108, 109, 109, 110, 111, 111, 112, 113, 113, 114, 115, 115, 116, 117, 117, 118, 119, 119, 120, 120, 121, 122, 122, 123, 124, 124, 125, 126, 126, 127}
-  l.velocities[3]={1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 18, 18, 19, 20, 20, 21, 22, 23, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 43, 44, 45, 47, 48, 49, 51, 52, 54, 55, 57, 58, 60, 62, 63, 65, 66, 68, 70, 72, 73, 75, 77, 79, 80, 82, 84, 86, 88, 90, 92, 94, 95, 97, 99, 101, 103, 105, 107, 109, 111, 113, 115, 117, 119, 121, 123, 125, 127}
+  l.velocities[1]={1,4,7,10,13,16,19,22,25,28,31,34,38,41,43,46,49,52,55,57,60,62,64,66,68,70,71,73,74,76,77,79,80,81,83,84,85,86,87,89,90,91,92,93,94,95,95,96,97,98,99,99,100,101,102,102,103,104,104,105,105,106,106,107,107,108,108,109,109,109,110,110,111,111,111,112,112,112,112,113,113,113,114,114,114,114,115,115,115,115,115,116,116,116,116,116,117,117,117,117,118,118,118,118,118,119,119,119,120,120,120,120,121,121,121,122,122,122,123,123,124,124,124,125,125,126,126,127}
+  l.velocities[2]={0,2,3,4,6,7,8,10,11,13,14,15,17,18,19,21,22,23,25,26,27,29,30,31,33,34,35,37,38,39,40,42,43,44,45,47,48,49,50,52,53,54,55,57,58,59,60,61,62,64,65,66,67,68,69,70,71,72,73,75,76,77,78,79,80,81,82,83,83,84,85,86,87,88,89,90,91,92,92,93,94,95,96,97,97,98,99,100,100,101,102,103,103,104,105,106,106,107,108,109,109,110,111,111,112,113,113,114,115,115,116,117,117,118,119,119,120,120,121,122,122,123,124,124,125,126,126,127}
+  l.velocities[3]={1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,8,8,8,9,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,18,18,19,20,20,21,22,23,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,42,43,44,45,47,48,49,51,52,54,55,57,58,60,62,63,65,66,68,70,72,73,75,77,79,80,82,84,86,88,90,92,94,95,97,99,101,103,105,107,109,111,113,115,117,119,121,123,125,127}
 
   params:add_group("MX.SYNTHS",21+12*5)
 
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
   params:set_action("mxsynths_synth",function(x)
-    if engine.name=="MxSynths"  then
+    if engine.name=="MxSynths" then
       engine.mx_set_synth(l.synths[x])
       l:save()
     end
@@ -38,7 +38,7 @@ function MxSynths:new(args)
   -- polyphony selector
   params:add_option("mxsynths_polyphony","polyphony",{"polyphonic","monophonic"},1)
   params:set_action("mxsynths_polyphony",function(x)
-    if engine.name=="MxSynths"  then
+    if engine.name=="MxSynths" then
       engine.mx_set("monophonic",x-1)
       l:save()
     end
@@ -51,7 +51,7 @@ function MxSynths:new(args)
     return ((val<0) and "" or "+")..val.." dB"
   end}
   params:set_action("mxsynths_amp",function(x)
-    if engine.name=="MxSynths"  then
+    if engine.name=="MxSynths" then
       engine.mx_set("amp",util.dbamp(x))
       l:save()
     end
@@ -62,7 +62,7 @@ function MxSynths:new(args)
     return ((val<0) and "" or "+")..val.." dB"
   end}
   params:set_action("mxsynths_sub",function(x)
-    if engine.name=="MxSynths"  then
+    if engine.name=="MxSynths" then
       engine.mx_set("sub",util.dbamp(x))
       l:save()
     end
@@ -74,7 +74,7 @@ function MxSynths:new(args)
     name="pan",
     controlspec=controlspec.new(-1,1,'lin',0,0),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_set("pan",x)
         l:save()
       end
@@ -87,7 +87,7 @@ function MxSynths:new(args)
     name="portamento",
     controlspec=controlspec.new(0,5,'lin',0.01,0,'s',0.01/5),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_set("portamento",x)
         l:save()
       end
@@ -101,7 +101,7 @@ function MxSynths:new(args)
     name="attack",
     controlspec=controlspec.new(0,10,'lin',0.01,0.01,'s',0.01/10),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_set("attack",x)
         l:save()
       end
@@ -114,7 +114,7 @@ function MxSynths:new(args)
     name="decay",
     controlspec=controlspec.new(0,10,'lin',0,1,'s'),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_set("decay",x)
         l:save()
       end
@@ -127,20 +127,20 @@ function MxSynths:new(args)
     name="sustain",
     controlspec=controlspec.new(0,2,'lin',0,0.9,'amp'),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_set("sustain",x)
         l:save()
       end
     end
   }
-  
+
   params:add {
     type='control',
     id="mxsynths_release",
     name="release",
     controlspec=controlspec.new(0,10,'lin',0,1,'s'),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_set("release",x)
         l:save()
       end
@@ -154,7 +154,7 @@ function MxSynths:new(args)
       name="mod"..i,
       controlspec=controlspec.new(-1,1,'lin',0.01,0,'',0.01/2),
       action=function(x)
-        if engine.name=="MxSynths"  then
+        if engine.name=="MxSynths" then
           engine.mx_set("mod"..i,x)
           l:save()
         end
@@ -168,7 +168,7 @@ function MxSynths:new(args)
     name="tune",
     controlspec=controlspec.new(-100,100,'lin',0,0,'cents',1/200),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_set("tune",x/100)
         l:save()
       end
@@ -182,7 +182,7 @@ function MxSynths:new(args)
     controlspec=filter_freq,
     formatter=Formatters.format_freq,
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_fxset("lpf",x)
         l:save()
       end
@@ -195,7 +195,7 @@ function MxSynths:new(args)
     name="delay send",
     controlspec=controlspec.new(0,100,'lin',0,10,'%',1/100),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_fxset("delay",x/100)
         l:save()
       end
@@ -208,7 +208,7 @@ function MxSynths:new(args)
     name="delay iterations",
     controlspec=controlspec.new(0,100,'lin',0,11,'beats',1/100),
     action=function(x)
-      if engine.name=="MxSynths"  then
+      if engine.name=="MxSynths" then
         engine.mx_fxset("delayFeedback",x/100)
         l:save()
       end
@@ -217,7 +217,7 @@ function MxSynths:new(args)
 
   params:add_option("mxsynths_delay_rate","delay rate",delay_rates_names,3)
   params:set_action("mxsynths_delay_rate",function(x)
-    if engine.name=="MxSynths"  then
+    if engine.name=="MxSynths" then
       engine.mx_fxset("delayBeats",delay_rates[x])
       l:save()
     end
@@ -227,9 +227,9 @@ function MxSynths:new(args)
 
   params:add_option("mxsynths_sensitivity","velocity sensitivity",{"delicate","normal","stiff"},2)
   params:set_action("mxsynths_sensitivity",function(x)
-      if engine.name=="MxSynths" then
-        l:save()
-      end
+    if engine.name=="MxSynths" then
+      l:save()
+    end
   end)
 
   params:add_separator("lfos")
@@ -256,13 +256,13 @@ function MxSynths:new(args)
   --   end
   -- end
 
-  if engine.name=="MxSynths"  then
+  if engine.name=="MxSynths" then
     engine.mx_fxset("secondsPerBeat",clock.get_beat_sec())
   end
 
   l.ready=false
 
-  if util.file_exists(_path.data.."mx.synths/default.pset") then 
+  if util.file_exists(_path.data.."mx.synths/default.pset") then
     params:read(_path.data.."mx.synths/default.pset")
   end
   params:bang()
@@ -287,8 +287,8 @@ function MxSynths:run()
     while true do
       clock.sleep(1/10)
       self:lfo()
-      if self.debouncer>0 then 
-        if self.debouncer==1 then 
+      if self.debouncer>0 then
+        if self.debouncer==1 then
           params:write(_path.data.."mx.synths/default.pset")
         end
         self.debouncer=self.debouncer-1
@@ -298,19 +298,19 @@ function MxSynths:run()
 end
 
 function MxSynths:save(pname)
-  if not self.ready then 
+  if not self.ready then
     do return end
   end
   local has_lfo=pcall(function() params:get("lfo_mxsynths_"..pname) end)
   if has_lfo then
-    if params:get("lfo_mxsynths_"..pname)==2 then 
-      do return end 
+    if params:get("lfo_mxsynths_"..pname)==2 then
+      do return end
     end
   end
   -- reset debounce
   self.debouncer=10
-  -- if self.waiting_to_save then 
-  --   do return end 
+  -- if self.waiting_to_save then
+  --   do return end
   -- end
   -- self.waiting_to_save=true
   -- clock.run(function()
