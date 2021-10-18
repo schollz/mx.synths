@@ -130,6 +130,12 @@ the `<duration>` is the number of seconds to automatically release. it effective
 engine.mx_note_off(<midi>)
 ```
 
+there is a helper function to do one-shot playback, you can simply do `mxsynths:play({...})` with all the parameters you want, e.g.:
+
+```lua
+mxsynths:play({synth="malone",note=60,velocity=80,attack=0.1,release=2})
+```
+
 ### limitations
 
 there are a couple limitations that may become obvious when you spend time with mx.synths. 
