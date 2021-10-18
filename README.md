@@ -142,7 +142,7 @@ there are a couple limitations that may become obvious when you spend time with 
 
 first - while you *can* play multiple synth voices simultaneously, the way I wrote the engine is such that only all synth voices will voice-steal from each other if they are playing the *same note*. (also currently there isn't a engine command to send all the parameters, rather the parameters are gathered from the PSET menu, but that can be added soon). 
 
-second - polyphony is not limited in the engine, but it will be limited by the norns cpu. probably 4-6 polyphony is the max for most synths. setting a quick release if you can will help with this. the synths could also be better optimized I'm sure.
+second - polyphony is not limited in the engine, but it will be limited by the norns cpu. probably 6-10 polyphony is the max for most synths. setting a quick release if you can will help with this. the synths could also be better optimized I'm sure.
 
 
 ### making your own synth
