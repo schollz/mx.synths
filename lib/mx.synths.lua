@@ -294,7 +294,7 @@ function MxSynths:play(s)
   if s.synth~=nil then
     for i,syn in ipairs(self.synths) do
       if syn==s.synth then
-        params:set("synth",i)
+        params:set("mxsynths_synth",i)
       end
     end
   end
