@@ -6,7 +6,9 @@ Engine_MxSynths : CroneEngine {
 	var mxVoicesOn;
 	var mxSynthFX;
 	var mxBusFx;
-	var fnNoteOn, fnNoteOff, updateSub;
+	var fnNoteOn, fnNoteOnMono, fnNoteOnPoly;
+	var fnNoteOff, fnNoteOffMono, fnNoteOffPoly;
+	var updateSub;
 	var pedalSustainOn=false;
 	var pedalSostenutoOn=false;
 	var pedalSustainNotes;
@@ -350,20 +352,30 @@ Engine_MxSynths : CroneEngine {
 		mxSynthFX = Synth.new("mxfx",[\out,0,\inBus,mxBusFx]);
 		context.server.sync;
 
-		// intialize helper functions
-		fnNoteOn= {
+		fnNoteOnMono={
+			arg note,amp,duration;
+			var notesOn=false;
+			// check to see if any notes are on
+			mxVoicesOn.keysValuesDo({ arg key, syn;
+				notesOn=true;
+			});
+			if (notesOn,{
+				fnNoteOnPoly.(note,amp.duration);
+			},{
+				mxVoices.keysValuesDo({ arg key, syn;
+					syn.set(
+						\hz,(note+mxParameters.at("tune")).midicps,
+					);
+				});
+			});
+			mxVoicesOn.put(note,1);
+		};
+
+		fnNoteOnPoly={
 			arg note,amp,duration;
 			var lowestNote=10000;
 			var sub=0;
 			// (mxParameters.at("synth")++" note_on "++note).postln;
-
-			// if monophonic, remove all the other sounds
-			if (mxParameters.at("monophonic")>0,{
-				mxVoicesOn.keysValuesDo({ arg key, syn;
-					mxVoicesOn.removeAt(key);
-					mxVoices.at(key).set(\gate,0);
-				});
-			});
 
 			// low-note priority for sub oscillator
 			mxVoicesOn.keysValuesDo({ arg key, syn;
@@ -406,8 +418,57 @@ Engine_MxSynths : CroneEngine {
 			mxVoicesOn.put(note,1);
 			NodeWatcher.register(mxVoices.at(note));
 		};
+
+		// intialize helper functions
+		fnNoteOn= {
+			arg note,amp,duration;
+			
+			// if monophonic, remove all the other sounds
+			if (mxParameters.at("monophonic")>0,{
+				fnNoteOnMono.(note,amp,duration);
+			},{
+				fnNoteOnPoly.(note,amp,duration);
+			});
+		};
 		
 		fnNoteOff = {
+			arg note;
+
+			// if monophonic, remove all the other sounds
+			if (mxParameters.at("monophonic")>0,{
+				fnNoteOffMono.(note);
+			},{
+				fnNoteOffPoly.(note);
+			});
+		};
+
+		fnNoteOffPoly = {
+			arg note;
+			var notesOn=false;
+			var playedAnother=false;
+			mxVoicesOn.removeAt(note);
+			mxVoicesOn.keysValuesDo({ arg note, syn;
+				notesOn=true;
+			});
+			if (notesOn==false,{
+				// turn off synth, wherever it is
+				mxVoices.keysValuesDo({ arg note, syn;
+					syn.set(\gate,0);
+				});
+			},{
+				// play another note that is pressed down
+				mxVoicesOn.keysValuesDo({ arg note, syn;
+					if (playedAnother==false,{
+						syn.set(
+							\hz,(note+mxParameters.at("tune")).midicps,
+						);
+						playedAnother=true;
+					});
+				});
+			});
+		};
+
+		fnNoteOffPoly = {
 			arg note;
 			var lowestNote=10000;
 			// ("mx_note_off "++note).postln;
