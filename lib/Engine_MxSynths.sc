@@ -189,7 +189,8 @@ Engine_MxSynths : CroneEngine {
 			var vel = 0.8, modIndex = 0.2, mix = 0.2, lfoSpeed = 0.4, lfoDepth = 0.1;
 			var env1, env2, env3, env4;
 			var osc1, osc2, osc3, osc4, snd;
-			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+			var env;
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			hz=Lag.kr(hz,portamento);
 			lfoDepth=LinExp.kr(mod1,-1,1,0.01,1);
@@ -201,10 +202,10 @@ Engine_MxSynths : CroneEngine {
 
 			hz = hz * 2;
 
-			env1 = EnvGen.ar(Env.adsr(0.001, 1.25, 0.0, 0.04, curve: \lin));
-			env2 = EnvGen.ar(Env.adsr(0.001, 1.00, 0.0, 0.04, curve: \lin));
-			env3 = EnvGen.ar(Env.adsr(0.001, 1.50, 0.0, 0.04, curve: \lin));
-			env4 = EnvGen.ar(Env.adsr(0.001, 1.50, 0.0, 0.04, curve: \lin));
+			env1 = EnvGen.ar(Env.adsr(0.001, 1.25, 0.5, release, curve: \lin),gate);
+			env2 = EnvGen.ar(Env.adsr(0.001, 1.00, 0.5, release, curve: \lin),gate);
+			env3 = EnvGen.ar(Env.adsr(0.001, 1.50, 0.5, release, curve: \lin),gate);
+			env4 = EnvGen.ar(Env.adsr(0.001, 1.50, 0.5, release, curve: \lin),gate);
 
 			osc4 = SinOsc.ar(hz * 0.5) * 2pi * 2 * 0.535887 * modIndex * env4 * vel;
 			osc3 = SinOsc.ar(hz, osc4) * env3 * vel;
@@ -481,6 +482,7 @@ Engine_MxSynths : CroneEngine {
 							\gate,0,
 						);
 						if (playedAnother==false,{
+							//"mono: replaying synth".postln;
 							syn.set(
 								\gate,1,
 								\hz,(note+mxParameters.at("tune")).midicps,
@@ -607,7 +609,16 @@ Engine_MxSynths : CroneEngine {
 				"sub",{
 					updateSub.();
 				}, 	// update sub
-				"synth",{}, // do nothing
+				"synth",{
+					if (mxParameters.at("monophonic")>0,{
+						// remove all synths if monophonic
+						mxVoices.keysValuesDo({ arg note, syn;
+							if (syn.isRunning,{
+								syn.set(\gate,0);
+							});
+						});
+					});
+				}, 
 				"amp",{}, 	// do nothing
 				"attack",{}, 	// do nothing
 				"sustain",{}, 	// do nothing
