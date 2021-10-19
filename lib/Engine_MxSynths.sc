@@ -99,6 +99,7 @@ Engine_MxSynths : CroneEngine {
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var freq, env, freqBase, freqRes, pdbase, pd, pdres, pdi, snd,res,detuning,artifacts,phasing;
+			hz=Lag.kr(hz,portamento);
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			artifacts=LinLin.kr(mod1,-1,1,1,10);
@@ -190,7 +191,7 @@ Engine_MxSynths : CroneEngine {
 			var osc1, osc2, osc3, osc4, snd;
 			var env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-
+			hz=Lag.kr(hz,portamento);
 			lfoDepth=LinExp.kr(mod1,-1,1,0.01,1);
 			mix=LinLin.kr(mod2,-1,1,0.0,0.4);
 			modIndex=LinExp.kr(mod3,-1,1,0.01,4);
@@ -256,8 +257,8 @@ Engine_MxSynths : CroneEngine {
 			filt=LinLin.kr(mod2,-1,1,2,10);
 			res=LinExp.kr(mod3,-1,1,0.25,4);
 			detuning=LinExp.kr(mod4,-1,1,0.002,0.8);
-
-			note=Lag.kr(hz,portamento).cpsmidi;
+			hz=Lag.kr(hz,portamento);
+			note=hz.cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			snd=Mix.ar(Array.fill(2,{
 				arg i;
@@ -294,6 +295,7 @@ Engine_MxSynths : CroneEngine {
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,filt,env,pw,co,gain,detune,note;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			hz=Lag.kr(hz,portamento);
 			pw=LinLin.kr(mod1,-1,1,0.3,0.7);
 			co=LinExp.kr(mod2,-1,1,hz,Clip.kr(10*hz,200,18000));
 			gain=LinLin.kr(mod3,-1,1,0.25,3);
@@ -355,17 +357,29 @@ Engine_MxSynths : CroneEngine {
 		fnNoteOnMono={
 			arg note,amp,duration;
 			var notesOn=false;
+			var setNote=false;
 			// check to see if any notes are on
-			mxVoicesOn.keysValuesDo({ arg key, syn;
-				notesOn=true;
+			mxVoices.keysValuesDo({ arg key, syn;
+				if (syn.isRunning,{
+					notesOn=true;
+				});
 			});
-			if (notesOn,{
-				fnNoteOnPoly.(note,amp.duration);
+			if (notesOn==false,{
+				fnNoteOnPoly.(note,amp,duration);
 			},{
-				mxVoices.keysValuesDo({ arg key, syn;
-					syn.set(
-						\hz,(note+mxParameters.at("tune")).midicps,
-					);
+					mxVoices.keysValuesDo({ arg key, syn;
+					if (syn.isRunning,{
+						syn.set(
+							\gate,0,
+						);
+						if (setNote==false,{
+							syn.set(
+								\gate,1,
+								\hz,(note+mxParameters.at("tune")).midicps,
+							);
+							setNote=true;
+						});
+					});
 				});
 			});
 			mxVoicesOn.put(note,1);
@@ -422,6 +436,7 @@ Engine_MxSynths : CroneEngine {
 		// intialize helper functions
 		fnNoteOn= {
 			arg note,amp,duration;
+			// ("note on: "++note).postln;
 			
 			// if monophonic, remove all the other sounds
 			if (mxParameters.at("monophonic")>0,{
@@ -433,6 +448,7 @@ Engine_MxSynths : CroneEngine {
 		
 		fnNoteOff = {
 			arg note;
+			// ("note off: "++note).postln;
 
 			// if monophonic, remove all the other sounds
 			if (mxParameters.at("monophonic")>0,{
@@ -442,7 +458,7 @@ Engine_MxSynths : CroneEngine {
 			});
 		};
 
-		fnNoteOffPoly = {
+		fnNoteOffMono = {
 			arg note;
 			var notesOn=false;
 			var playedAnother=false;
@@ -453,16 +469,24 @@ Engine_MxSynths : CroneEngine {
 			if (notesOn==false,{
 				// turn off synth, wherever it is
 				mxVoices.keysValuesDo({ arg note, syn;
-					syn.set(\gate,0);
+					if (syn.isRunning,{
+						syn.set(\gate,0);
+					});
 				});
 			},{
 				// play another note that is pressed down
-				mxVoicesOn.keysValuesDo({ arg note, syn;
-					if (playedAnother==false,{
+				mxVoices.keysValuesDo({ arg note, syn;
+					if (syn.isRunning,{
 						syn.set(
-							\hz,(note+mxParameters.at("tune")).midicps,
+							\gate,0,
 						);
-						playedAnother=true;
+						if (playedAnother==false,{
+							syn.set(
+								\gate,1,
+								\hz,(note+mxParameters.at("tune")).midicps,
+							);
+							playedAnother=true;
+						});
 					});
 				});
 			});
@@ -486,8 +510,6 @@ Engine_MxSynths : CroneEngine {
 					updateSub.();
 				});
 			});
-
-
 		};
 
 		updateSub = {
@@ -523,11 +545,7 @@ Engine_MxSynths : CroneEngine {
 
 		this.addCommand("mx_note_off", "i", { arg msg;
 			var note=msg[1];
-			if (mxVoices.at(note)!=nil,{
-				if (mxVoices.at(note).isRunning==true,{
-					fnNoteOff.(note);
-				});
-			});
+			fnNoteOff.(note);
 		});
 
 		this.addCommand("mx_sustain", "i", { arg msg;
