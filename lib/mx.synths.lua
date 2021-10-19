@@ -39,15 +39,6 @@ function MxSynths:new(args)
     end
   end)
 
-  -- polyphony selector
-  params:add_option("mxsynths_polyphony","polyphony",{"polyphonic","monophonic"},1)
-  params:set_action("mxsynths_polyphony",function(x)
-    if engine.name=="MxSynths" then
-      engine.mx_set("monophonic",x-1)
-      l:save()
-    end
-  end)
-  params:hide("mxsynths_polyphony")
 
   -- amp
   params:add{type="control",id="mxsynths_amp",name="volume",controlspec=controlspec.new(-96,20,'lin',1,-9,'',1/(20+96)),formatter=function(v)
@@ -85,19 +76,6 @@ function MxSynths:new(args)
     end
   }
 
-  params:add {
-    type='control',
-    id="mxsynths_portamento",
-    name="portamento",
-    controlspec=controlspec.new(0,5,'lin',0.01,0,'s',0.01/5),
-    action=function(x)
-      if engine.name=="MxSynths" then
-        engine.mx_set("portamento",x)
-        l:save()
-      end
-    end
-  }
-  params:hide("mxsynths_portamento")
 
   params:add {
     type='control',
@@ -227,7 +205,33 @@ function MxSynths:new(args)
     end
   end)
 
-  params:add_option("mxsynths_pedal_mode","pedal mode",{"sustain","sostenuto"},1)
+
+  -- polyphony selector
+  params:add_option("mxsynths_polyphony","polyphony",{"polyphonic","monophonic"},1)
+  params:set_action("mxsynths_polyphony",function(x)
+    if engine.name=="MxSynths" then
+      engine.mx_set("monophonic",x-1)
+      l:save()
+      if x==2 then 
+        params:show("mxsynths_portamento")
+      else
+        params:hide("mxsynths_portamento")
+      end  
+      _menu.rebuild_params() 
+    end
+  end)
+  params:add {
+    type='control',
+    id="mxsynths_portamento",
+    name="portamento",
+    controlspec=controlspec.new(0,5,'lin',0.01,0,'s',0.01/5),
+    action=function(x)
+      if engine.name=="MxSynths" then
+        engine.mx_set("portamento",x)
+        l:save()
+      end
+    end
+  }
 
   params:add_option("mxsynths_sensitivity","velocity sensitivity",{"delicate","normal","stiff","fixed"},2)
   params:set_action("mxsynths_sensitivity",function(x)
@@ -235,6 +239,10 @@ function MxSynths:new(args)
       l:save()
     end
   end)
+
+  params:add_option("mxsynths_pedal_mode","pedal mode",{"sustain","sostenuto"},1)
+
+
 
   params:add_separator("lfos")
   l:create_lfo_param("pan",{-1,1},{-0.5,0.5})
