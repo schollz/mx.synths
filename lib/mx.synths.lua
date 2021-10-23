@@ -275,10 +275,12 @@ function MxSynths:new(args)
 
   l.ready=false
 
-  if util.file_exists(_path.data.."mx.synths/default.pset") then
-    params:read(_path.data.."mx.synths/default.pset")
+  if args.previous==true then 
+    if util.file_exists(_path.data.."mx.synths/default.pset") then
+      params:read(_path.data.."mx.synths/default.pset")
+    end
+    params:bang()
   end
-  params:bang()
   l:refresh_params()
   l:run()
 
