@@ -1,4 +1,4 @@
--- mx.synths v0.2.0
+-- mx.synths v0.2.1
 --
 --
 -- llllllll.co/t/mx-synths
@@ -18,7 +18,7 @@ engine.name="MxSynths"
 
 function init()
   local mxsynths_=include("mx.synths/lib/mx.synths")
-  mxsynths=mxsynths_:new()
+  mxsynths=mxsynths_:new({save=true})
   mxsynths:setup_midi()
   clock.run(redraw_clock)
 end

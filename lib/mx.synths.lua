@@ -14,6 +14,7 @@ function MxSynths:new(args)
   local delay_last_clock=0
 
   -- add parameters
+  l.save_on_change=args.save or false
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
   l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc","icarus"}
   l.presets={}
@@ -217,7 +218,7 @@ function MxSynths:new(args)
       else
         params:hide("mxsynths_portamento")
       end  
-      _menu.rebuild_params() 
+      _menu.rebuild_params()
     end
   end)
   params:add {
@@ -317,7 +318,7 @@ end
 
 function MxSynths:run()
   self.waiting_to_save=false
-  self.debouncer=10
+  self.debouncer=0
   clock.run(function()
     while true do
       clock.sleep(1/10)
@@ -335,6 +336,9 @@ end
 function MxSynths:save(pname)
   if not self.ready then
     do return end
+  end
+  if not self.save_on_change then 
+    do return end 
   end
   local has_lfo=pcall(function() params:get("lfo_mxsynths_"..pname) end)
   if has_lfo then
