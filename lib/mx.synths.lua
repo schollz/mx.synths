@@ -16,7 +16,7 @@ function MxSynths:new(args)
   -- add parameters
   l.save_on_change=args.save or false
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
-  l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc","icarus","mdpiano"}
+  l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc","icarus","mdapiano"}
   l.presets={}
   l.presets["synthy"]={"massive"}
   -- https://sumire-io.gitlab.io/midi-velocity-curve-generator/

@@ -58,6 +58,7 @@ function redraw()
   for i=1,4 do
     mod[i]=params:get("mxsynths_mod"..i)
   end
+
   if synth=="piano" then
     piano()
   elseif synth=="toshiya" then
@@ -74,6 +75,9 @@ function redraw()
     epiano()
   elseif synth=="icarus" then
     icarus()
+  elseif synth=="mdapiano" then 
+    screen.display_png(_path.code.."mx.synths/lib/piano.png",-1,0)
+    generic()
   else
     generic()
   end
