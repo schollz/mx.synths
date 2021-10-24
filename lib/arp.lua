@@ -20,6 +20,11 @@ function Arp:make_menu()
 end
 
 function Arp:init()
+  -- define time signature
+  self.time_signature=2
+  self.time_signatures={"1/32","1/16","1/16T","1/8","1/8T","1/4","1/2","1"}
+  self.time_divisions={1/32,1/16,1/12,1/8,1/6,1/4,1/2,1}
+
   -- define duration (number of 1/16th notes)
   self.duration=8
 
@@ -44,6 +49,17 @@ function Arp:init()
 
   -- the sequins sequence
   self.seq=nil
+end
+
+function Arp:sequencer_start()
+  local lattice=require("lattice")
+  local l=lattice:new{}
+  local p=l:new_pattern{
+    action=function(t)
+    end,
+    division=1/16
+  }
+
 end
 
 function Arp:refresh()
@@ -136,7 +152,11 @@ function Arp:refresh()
   end
 
   -- convert to a sequins
-  self.seq=Sequins(s)
+  if self.seq==nil then
+    self.seq=Sequins(s)
+  else
+    self.seq:settable(s)
+  end
 end
 
 function Arp:next()
@@ -191,12 +211,12 @@ for i=1,20 do
 end
 print(ss)
 
--- local s=Sequins{2,2,4,4}
+-- local s=Sequins{1,1,1}
 -- local seq=Sequins{1,s,3,s}
 -- for i=1,6 do
 --   print(seq())
 -- end
--- seq:settable({8,s,8,s})
+-- seq:settable({1,2,3,4})
 -- for i=1,5 do
 --   print(seq())
 -- end
