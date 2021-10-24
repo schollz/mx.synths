@@ -291,6 +291,33 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 
+		SynthDef("mdapiano",{
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
+			var snd,env;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			hz=Lag.kr(hz,portamento);
+			env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+
+			snd=MdaPiano.ar(
+				freq:hz,
+				gate:gate,
+				decay:decay,
+				release:release,
+				stereo:LinLin.kr(mod1,-1,1,0.3,1),
+				vel:LinLin.kr(amp,0,1,0,127),
+				tune:LinLin.kr(mod4,-1,1,0,1)
+			);
+			snd=Vibrato.ar(
+				snd,
+				rate:LinExp.kr(mod2,-1,1,0.0001,20),
+				depth:LinExp.kr(mod3,-1,1,0.0001,1)
+			);
+			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
+			Out.ar(out,snd*env*amp/12);
+		}).add;
+
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
 		SynthDef("PolyPerc",{
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
