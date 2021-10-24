@@ -27,9 +27,9 @@ function Arp:init()
   -- which will increase the arpeggio over more octaves
   self.length=1
 
-  -- define possible directions
-  self.direction=1
-  self.directions={"up","down","up-down","down-up","converge","diverge","converge-diverge","diverge-converge","random"}
+  -- define possible shapes
+  self.shape=1
+  self.shapes={"up","down","up-down","down-up","converge","diverge","converge-diverge","diverge-converge","random"}
 
   -- define possible modes
   self.mode=1
@@ -79,13 +79,13 @@ function Arp:refresh()
     table.insert(s_reverse,s[i])
   end
 
-  -- create the sequence based on the directions
-  if self.directions[self.direction]=="down" then
+  -- create the sequence based on the shapes
+  if self.shapes[self.shape]=="down" then
     -- down
     -- 1 2 3 4 5 becomes
     -- 5 4 3 2 1
     s=s_reverse
-  elseif self.directions[self.direction]=="up-down" then
+  elseif self.shapes[self.shape]=="up-down" then
     -- up-down
     -- 1 2 3 4 5 becomes
     -- 1 2 3 4 5 4 3 2
@@ -94,7 +94,7 @@ function Arp:refresh()
         table.insert(s,n)
       end
     end
-  elseif self.directions[self.direction]=="down-up" then
+  elseif self.shapes[self.shape]=="down-up" then
     -- down-up
     -- 1 2 3 4 5 become
     -- 5 4 3 2 1 2 3 4
@@ -174,7 +174,7 @@ end
 
 local arp=Arp:new()
 arp.length=2
-arp.direction=3 -- up down
+arp.shape=3 -- up down
 arp.trigger=2 -- trigger the mode after the first note
 arp.mode=2 -- when triggered play a +12/-12 octave
 arp:add(0)
