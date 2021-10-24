@@ -299,8 +299,42 @@ function MxSynths:new(args)
   -- params:set("lfo_mxsynths_mod3",2)
   -- params:set("lfo_mxsynths_mod4",2)
 
+  l:setup_arp()
+
   l.ready=true
+
   return l
+end
+
+function MxSynths:setup_arp()
+  self.arp=Arp:new()
+  self.arp.shape=3
+  self.arp:sequencer_init()
+  self.arp.note_on=function(note)
+    engine.mx_note_on(note,0.5,10)
+  end
+  self.arp.note_off=function(note)
+    engine.mx_note_off(note)
+  end
+end
+
+local do_arp=true 
+
+function MxSynths:note_on(note,amp,duration)
+  if do_arp then 
+    self.arp:add(note)
+    self.arp:sequencer_start()
+  else
+    engine.mx_note_on(note,amp,duration)
+  end
+end
+
+function MxSynths:note_off(note)
+  if do_arp then 
+    self.arp:remove(note)
+  else
+    engine.mx_note_on(note,amp,duration)
+  end
 end
 
 function MxSynths:play(s)
@@ -323,7 +357,7 @@ function MxSynths:play(s)
   local duration=params:get("mxsynths_attack")
   duration=duration+params:get("mxsynths_decay")
   duration=duration+params:get("mxsynths_release")
-  engine.mx_note_on(s.note,self.velocities[params:get("mxsynths_sensitivity")][math.floor(s.velocity+1)]/127,duration)
+  self:note_on(s.note,self.velocities[params:get("mxsynths_sensitivity")][math.floor(s.velocity+1)]/127,duration)
 end
 
 function MxSynths:run()
@@ -473,9 +507,9 @@ function MxSynths:setup_midi()
           do return end
         end
         if d.type=="note_on" then
-          engine.mx_note_on(d.note,self.velocities[params:get("mxsynths_sensitivity")][math.floor(d.vel+1)]/127,600)
+          self:note_on(d.note,self.velocities[params:get("mxsynths_sensitivity")][math.floor(d.vel+1)]/127,600)
         elseif d.type=="note_off" then
-          engine.mx_note_off(d.note)
+          self:note_off(d.note)
         elseif d.cc==64 then -- sustain pedal
           local val=d.val
           if val>126 then

@@ -13,6 +13,7 @@
 -- K1+any E controls mod4
 
 local UI=require "ui"
+Arp=include("mx.synths/lib/arp")
 
 engine.name="MxSynths"
 

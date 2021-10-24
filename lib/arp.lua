@@ -51,15 +51,51 @@ function Arp:init()
   self.seq=nil
 end
 
-function Arp:sequencer_start()
-  local lattice=require("lattice")
-  local l=lattice:new{}
-  local p=l:new_pattern{
-    action=function(t)
-    end,
-    division=1/16
-  }
+function Arp:sequencer_init()
+  local lattice=include("mx.synths/lib/lattice")
+  self.lattice=lattice:new{}
+  local division=1/8 -- TODO make this configurable
+  local note_off_offset = 0.5 -- TODO make this configurable (note length)
 
+  local notes_on = {} -- keeps track of which notes are on
+  self.pattern_note_on=self.lattice:new_pattern{
+    action=function(t)
+      -- trigger next note in sequence
+      if self.note_on~=nil then
+        local note_new=self:next()
+        if note_new~=nil then
+          notes_on[note_new]=true
+          self.note_on(note_new)
+        end
+      end
+    end,
+    division=division,
+  }
+  self.pattern_note_off=self.lattice:new_pattern{
+    action=function(t)
+      -- trigger next note in sequence
+      if self.note_off~=nil then
+        for note,_ in pairs(notes_on) do
+          self.note_off(note)
+          notes_on[note]=nil
+        end
+      end
+    end,
+    division=division,
+    offset=note_off_offset,
+  }
+end
+
+function Arp:sequencer_start()
+  if not self.sequencer_started then
+    self.lattice:hard_restart()
+  end
+  self.sequencer_started=true
+end
+
+function Arp:sequencer_stop()
+  self.lattice:stop()
+  self.sequencer_started=false
 end
 
 function Arp:refresh()
@@ -179,6 +215,7 @@ function Arp:add(note)
   end
   table.insert(self.notes,note)
   self:refresh()
+  print("Arp: added "..note)
 end
 
 function Arp:remove(note)
@@ -190,26 +227,27 @@ function Arp:remove(note)
   end
   self.notes=notes
   self:refresh()
+  print("Arp: removed "..note)
 end
 
-local arp=Arp:new()
-arp.length=2
-arp.shape=3 -- up down
-arp.trigger=2 -- trigger the mode after the first note
-arp.mode=2 -- when triggered play a +12/-12 octave
-arp:add(0)
-arp:add(3)
-arp:add(5)
-arp:remove(3)
-arp:add(7)
-for i,n in ipairs(arp.seq) do
-  print(i,n)
-end
-local ss=""
-for i=1,20 do
-  ss=ss.." "..arp:next()
-end
-print(ss)
+-- local arp=Arp:new()
+-- arp.length=2
+-- arp.shape=3 -- up down
+-- arp.trigger=2 -- trigger the mode after the first note
+-- arp.mode=2 -- when triggered play a +12/-12 octave
+-- arp:add(0)
+-- arp:add(3)
+-- arp:add(5)
+-- arp:remove(3)
+-- arp:add(7)
+-- for i,n in ipairs(arp.seq) do
+--   print(i,n)
+-- end
+-- local ss=""
+-- for i=1,20 do
+--   ss=ss.." "..arp:next()
+-- end
+-- print(ss)
 
 -- local s=Sequins{1,1,1}
 -- local seq=Sequins{1,s,3,s}
@@ -220,3 +258,5 @@ print(ss)
 -- for i=1,5 do
 --   print(seq())
 -- end
+
+return Arp
