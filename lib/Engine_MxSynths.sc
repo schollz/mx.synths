@@ -358,7 +358,7 @@ Engine_MxSynths : CroneEngine {
 			hz=Lag.kr(hz,portamento);
 			env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
-			tuning=LinLin.kr(Clamp.kr(mod4),0,1,0,1);
+			tuning=LinLin.kr(Clip.kr(mod4),0,1,0,1);
 			snd=MdaPiano.ar(
 				freq:hz,
 				gate:gate,
@@ -366,7 +366,7 @@ Engine_MxSynths : CroneEngine {
 				release:release,
 				stereo:LinLin.kr(mod1,-1,1,0.3,1),
 				vel:LinLin.kr(amp,0,1,0,127),
-				tune:Rand(tuning.neg,tuning)
+				tune:Rand(0.5+tuning.neg,0.5+tuning)
 			);
 			snd=Vibrato.ar(
 				snd,
@@ -556,13 +556,15 @@ Engine_MxSynths : CroneEngine {
 		
 		fnNoteOff = {
 			arg note;
-			// ("note off: "++note).postln;
-
-			// if monophonic, remove all the other sounds
-			if (mxParameters.at("monophonic")>0,{
-				fnNoteOffMono.(note);
-			},{
-				fnNoteOffPoly.(note);
+			// ("note off: "++note).postln;		
+			// remove it it hasn't already been removed	and synth gone	
+			if ((mxVoices.at(note).isRunning==false)&&(mxVoicesOn.at(note)==nil),{},{
+				// if monophonic, remove all the other sounds
+				if (mxParameters.at("monophonic")>0,{
+					fnNoteOffMono.(note);
+				},{
+					fnNoteOffPoly.(note);
+				});
 			});
 		};
 

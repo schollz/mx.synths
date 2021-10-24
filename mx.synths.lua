@@ -1,4 +1,4 @@
--- mx.synths v0.2.1
+-- mx.synths v0.3.0
 --
 --
 -- llllllll.co/t/mx-synths
@@ -397,6 +397,7 @@ function tree_rotate(x,y,a)
   local a,b=x*c-y*s,x*s+y*c
   return a,b
 end
+
 function tree_branches(a,b,len,ang,dir,count,color)
   local period=math.random(5,20)
   local offset=math.random(5,20)
@@ -414,6 +415,7 @@ function tree_branches(a,b,len,ang,dir,count,color)
   tree_branches(vx,vy,len+math.random()*2,ang,1,count+1,color)
   tree_branches(vx,vy,len+math.random()*2,ang,0,count+1,color)
 end
+
 function tree_create()
   local wid=110
   local hei=64

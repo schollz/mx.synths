@@ -230,6 +230,18 @@ function MxSynths:new(args)
       end
     end
   }
+  params:add {
+    type='control',
+    id="mxsynths_max_polyphony",
+    name="max polyphony",
+    controlspec=controlspec.new(0,100,'lin',2,20,'notes',1/100),
+    action=function(x)
+      if engine.name=="MxSynths" then
+        engine.mx_set_polyphony(math.floor(x))
+        l:save()
+      end
+    end
+  }
 
   params:add_option("mxsynths_sensitivity","velocity sensitivity",{"delicate","normal","stiff","fixed"},2)
   params:set_action("mxsynths_sensitivity",function(x)
@@ -240,18 +252,6 @@ function MxSynths:new(args)
 
   params:add_option("mxsynths_pedal_mode","pedal mode",{"sustain","sostenuto"},1)
 
-  params:add {
-    type='control',
-    id="mxsynths_max_polyphony",
-    name="max polyphony",
-    controlspec=controlspec.new(0,100,'lin',0,20,'notes',1/100),
-    action=function(x)
-      if engine.name=="MxSynths" then
-        engine.mx_set_polyphony(math.floor(x))
-        l:save()
-      end
-    end
-  }
 
   params:add_separator("lfos")
   l:create_lfo_param("pan",{-1,1},{-0.5,0.5})
