@@ -290,6 +290,86 @@ Engine_MxSynths : CroneEngine {
 			Out.ar(out,snd*env*amp/8);
 		}).add;
 
+// kalimba
+// (
+// SynthDef(\kalimba, {
+//     |out = 0, freq = 440, amp = 0.1, mix = 0.1|
+//     var snd, click;
+//     // Basic tone is a SinOsc
+//     snd = SinOsc.ar(freq) * EnvGen.ar(Env.perc(0.03, Rand(3.0, 4.0), 1, -7), doneAction: 2);
+// 	snd = HPF.ar( LPF.ar(snd, 380), 120);
+//     // The "clicking" sounds are modeled with a bank of resonators excited by enveloped white noise
+// 	click = DynKlank.ar(`[
+//         // the resonant frequencies are randomized a little to add variation
+//         // there are two high resonant freqs and one quiet "bass" freq to give it some depth
+//         [240*ExpRand(0.97, 1.02), 2020*ExpRand(0.97, 1.02), 3151*ExpRand(0.97, 1.02)],
+//         [-9, 0, -5].dbamp,
+//         [0.8, 0.07, 0.08]
+// 	], BPF.ar(PinkNoise.ar, 6500, 0.1) * EnvGen.ar(Env.perc(0.001, 0.01))) * 0.1;
+// 	snd = (snd*mix) + (click*(1-mix));
+// 	snd = Mix( snd );
+//     Out.ar(out, Pan2.ar(snd, 0, amp));
+// }).add;
+// )
+
+
+		// another resonate thing
+		// http://sccode.org/1-4EG
+		// (
+		// {
+		// 	var attack=1;
+		// 	var dur=2;
+		// 	var spread=0.8;
+		// 	var freq=110;
+		// 	var num=8;
+		// 	var harm = Array.geom(num, 1, 1.5);
+		// 	var harma = Array.geom(num, 0.5, 0.8);
+		// 	var detune = Array.fill(num, { LFNoise2.kr(1,0.01,1) });
+		// 	var source = SelectX.ar(MouseX.kr(),[PinkNoise.ar,BrownNoise.ar]);
+		// 	var bandwidth = Rand(0.001,0.01);
+		// 	var generator = [
+		// 		SinOsc.ar(freq*harm*detune, mul:harma*0.3),
+		// 		Resonz.ar(source, freq*harm*detune, bandwidth, mul:harma) * 50
+		// 	].wchoose([0.2,0.8]);
+		// 	var snd = Splay.ar(generator,spread);
+		// 	snd
+		// }.play;
+		// )
+
+		// http://sccode.org/1-51n
+		SynthDef("kalimba",{
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=0.8,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=0.5;
+			var snd,env,click,mix;
+			mix=0.2;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			hz=Lag.kr(hz,portamento);
+			env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+			
+			// Basic tone is a SinOsc
+			snd = SinOsc.ar((hz.cpsmidi+mod4).midicps);
+			snd = HPF.ar( LPF.ar(snd, 380), 40);
+			// The "clicking" sounds are modeled with a bank of resonators excited by enveloped white noise
+			click = DynKlank.ar(`[
+				// the resonant frequencies are randomized a little to add variation
+				// there are two high resonant freqs and one quiet "bass" freq to give it some depth
+				[240*ExpRand(0.97, 1.02), 2020*ExpRand(0.97, 1.02), 3151*ExpRand(0.97, 1.02)],
+				[-9, 0, -5].dbamp,
+				[0.8, 0.07, 0.08]
+			], BPF.ar(PinkNoise.ar, Rand(5500,8500), Rand(0.05,0.2)) * EnvGen.ar(Env.perc(0.001, 0.01)));
+			snd = (snd*mix) + (click*(1-mix));
+			snd = Splay.ar(snd,center:Rand(-1,1)*LinLin.kr(mod1,-1,1,0,1));
+
+			snd=Vibrato.ar(
+				snd,
+				rate:LinExp.kr(mod2,-1,1,0.0001,20),
+				depth:LinExp.kr(mod3,-1,1,0.0001,1)
+			);
+			
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
+			Out.ar(out,snd*env*amp);
+		}).add;
 
 		SynthDef("mdapiano",{
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
