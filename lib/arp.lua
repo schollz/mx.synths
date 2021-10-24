@@ -104,6 +104,9 @@ function Arp:refresh()
     do return end
   end
 
+  -- first sort the notes
+  table.sort(self.notes)
+  
   -- define the root
   local root=self.notes[1]
 
