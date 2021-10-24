@@ -6,13 +6,15 @@ Engine_MxSynths : CroneEngine {
 	var mxVoicesOn;
 	var mxSynthFX;
 	var mxBusFx;
-	var fnNoteOn, fnNoteOnMono, fnNoteOnPoly;
+	var fnNoteOn, fnNoteOnMono, fnNoteOnPoly, fnNoteAdd;
 	var fnNoteOff, fnNoteOffMono, fnNoteOffPoly;
 	var updateSub;
 	var pedalSustainOn=false;
 	var pedalSostenutoOn=false;
 	var pedalSustainNotes;
 	var pedalSostenutoNotes;
+	var mxPolyphonyMax=20;
+	var mxPolyphonyCount=0;
 	// </mx>
 
 
@@ -383,7 +385,7 @@ Engine_MxSynths : CroneEngine {
 					});
 				});
 			});
-			mxVoicesOn.put(note,1);
+			fnNoteAdd.(note);
 		};
 
 		fnNoteOnPoly={
@@ -430,8 +432,27 @@ Engine_MxSynths : CroneEngine {
 					\duration,duration,
 				]);
 			);
-			mxVoicesOn.put(note,1);
 			NodeWatcher.register(mxVoices.at(note));
+			fnNoteAdd.(note);
+		};
+
+		fnNoteAdd={
+			arg note;
+			var oldestNote=0;
+			var oldestNoteVal=10000000;
+			mxPolyphonyCount=mxPolyphonyCount+1;
+			mxVoicesOn.put(note,mxPolyphonyCount);
+			if (mxVoicesOn.size>mxPolyphonyMax,{
+				// remove the oldest voice
+				mxVoicesOn.keysValuesDo({ arg key, val;
+					if (val<oldestNoteVal,{
+						oldestNoteVal=val;
+						oldestNote=key;
+					});	
+				});
+				("max polyphony reached, removing note "++oldestNote).postln;
+				fnNoteOff.(oldestNote);
+			});
 		};
 
 		// intialize helper functions
@@ -598,6 +619,10 @@ Engine_MxSynths : CroneEngine {
 			var val=msg[1].asSymbol;
 			// ("setting synth to "++val).postln;
 			mxParameters.put("synth",val.asSymbol);
+		});
+
+		this.addCommand("mx_set_polyphony","i",{ arg msg;
+			mxPolyphonyMax=msg[1];
 		});
 
 		this.addCommand("mx_set","sf",{ arg msg;
