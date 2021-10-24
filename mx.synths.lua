@@ -1,4 +1,4 @@
--- mx.synths v0.2.1
+-- mx.synths v0.3.0
 --
 --
 -- llllllll.co/t/mx-synths
@@ -58,6 +58,7 @@ function redraw()
   for i=1,4 do
     mod[i]=params:get("mxsynths_mod"..i)
   end
+
   if synth=="piano" then
     piano()
   elseif synth=="toshiya" then
@@ -74,6 +75,9 @@ function redraw()
     epiano()
   elseif synth=="icarus" then
     icarus()
+  elseif synth=="mdapiano" then
+    screen.display_png(_path.code.."mx.synths/lib/piano.png",-1,0)
+    generic()
   else
     generic()
   end
@@ -393,6 +397,7 @@ function tree_rotate(x,y,a)
   local a,b=x*c-y*s,x*s+y*c
   return a,b
 end
+
 function tree_branches(a,b,len,ang,dir,count,color)
   local period=math.random(5,20)
   local offset=math.random(5,20)
@@ -410,6 +415,7 @@ function tree_branches(a,b,len,ang,dir,count,color)
   tree_branches(vx,vy,len+math.random()*2,ang,1,count+1,color)
   tree_branches(vx,vy,len+math.random()*2,ang,0,count+1,color)
 end
+
 function tree_create()
   local wid=110
   local hei=64

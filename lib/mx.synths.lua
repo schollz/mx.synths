@@ -16,7 +16,7 @@ function MxSynths:new(args)
   -- add parameters
   l.save_on_change=args.save or false
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
-  l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc","icarus"}
+  l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc","icarus","mdapiano","kalimba"}
   l.presets={}
   l.presets["synthy"]={"massive"}
   -- https://sumire-io.gitlab.io/midi-velocity-curve-generator/
@@ -29,7 +29,7 @@ function MxSynths:new(args)
     table.insert(l.velocities[4],64)
   end
 
-  params:add_group("MX.SYNTHS",21+12*5)
+  params:add_group("MX.SYNTHS",22+12*5)
 
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
@@ -39,7 +39,6 @@ function MxSynths:new(args)
       l:save()
     end
   end)
-
 
   -- amp
   params:add{type="control",id="mxsynths_amp",name="volume",controlspec=controlspec.new(-96,20,'lin',1,-9,'',1/(20+96)),formatter=function(v)
@@ -76,7 +75,6 @@ function MxSynths:new(args)
       end
     end
   }
-
 
   params:add {
     type='control',
@@ -206,18 +204,17 @@ function MxSynths:new(args)
     end
   end)
 
-
   -- polyphony selector
   params:add_option("mxsynths_polyphony","polyphony",{"polyphonic","monophonic"},1)
   params:set_action("mxsynths_polyphony",function(x)
     if engine.name=="MxSynths" then
       engine.mx_set("monophonic",x-1)
       l:save()
-      if x==2 then 
+      if x==2 then
         params:show("mxsynths_portamento")
       else
         params:hide("mxsynths_portamento")
-      end  
+      end
       _menu.rebuild_params()
     end
   end)
@@ -233,6 +230,18 @@ function MxSynths:new(args)
       end
     end
   }
+  params:add {
+    type='control',
+    id="mxsynths_max_polyphony",
+    name="max polyphony",
+    controlspec=controlspec.new(0,100,'lin',2,20,'notes',1/100),
+    action=function(x)
+      if engine.name=="MxSynths" then
+        engine.mx_set_polyphony(math.floor(x))
+        l:save()
+      end
+    end
+  }
 
   params:add_option("mxsynths_sensitivity","velocity sensitivity",{"delicate","normal","stiff","fixed"},2)
   params:set_action("mxsynths_sensitivity",function(x)
@@ -242,7 +251,6 @@ function MxSynths:new(args)
   end)
 
   params:add_option("mxsynths_pedal_mode","pedal mode",{"sustain","sostenuto"},1)
-
 
 
   params:add_separator("lfos")
@@ -275,7 +283,7 @@ function MxSynths:new(args)
 
   l.ready=false
 
-  if args.previous==true then 
+  if args.previous==true then
     if util.file_exists(_path.data.."mx.synths/default.pset") then
       params:read(_path.data.."mx.synths/default.pset")
     end
@@ -339,8 +347,8 @@ function MxSynths:save(pname)
   if not self.ready then
     do return end
   end
-  if not self.save_on_change then 
-    do return end 
+  if not self.save_on_change then
+    do return end
   end
   local has_lfo=pcall(function() params:get("lfo_mxsynths_"..pname) end)
   if has_lfo then

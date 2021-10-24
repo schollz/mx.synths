@@ -108,6 +108,24 @@ since all synths share the parameters menu, you should save your settings if you
 <br>
 
 
+**mdapiano**: simply based off the SuperCollider [MdaPiano](http://doc.sccode.org/Classes/MdaPiano.html). mods:
+1. stereoness
+2. vibrato rate
+3. vibrato depth
+4. detuning
+
+<br>
+
+
+**kalimba**:based off the [p.dupuis](http://sccode.org/pdupuis)' [kalimba](http://sccode.org/1-51n), which is a fork from @nathan's kalimba.. mods:
+1. stereoness
+2. vibrato rate
+3. vibrato depth
+4. click mix
+
+<br>
+
+
 ### usage as library
 
 mx.synths can be included in other libraries. its probably easiest to change the engine and import the menu library:

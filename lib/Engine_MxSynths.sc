@@ -6,13 +6,15 @@ Engine_MxSynths : CroneEngine {
 	var mxVoicesOn;
 	var mxSynthFX;
 	var mxBusFx;
-	var fnNoteOn, fnNoteOnMono, fnNoteOnPoly;
+	var fnNoteOn, fnNoteOnMono, fnNoteOnPoly, fnNoteAdd;
 	var fnNoteOff, fnNoteOffMono, fnNoteOffPoly;
 	var updateSub;
 	var pedalSustainOn=false;
 	var pedalSostenutoOn=false;
 	var pedalSustainNotes;
 	var pedalSostenutoNotes;
+	var mxPolyphonyMax=20;
+	var mxPolyphonyCount=0;
 	// </mx>
 
 
@@ -289,6 +291,92 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 
+		// another resonate thing
+		// http://sccode.org/1-4EG
+		// (
+		// {
+		// 	var attack=1;
+		// 	var dur=2;
+		// 	var spread=0.8;
+		// 	var freq=110;
+		// 	var num=8;
+		// 	var harm = Array.geom(num, 1, 1.5);
+		// 	var harma = Array.geom(num, 0.5, 0.8);
+		// 	var detune = Array.fill(num, { LFNoise2.kr(1,0.01,1) });
+		// 	var source = SelectX.ar(MouseX.kr(),[PinkNoise.ar,BrownNoise.ar]);
+		// 	var bandwidth = Rand(0.001,0.01);
+		// 	var generator = [
+		// 		SinOsc.ar(freq*harm*detune, mul:harma*0.3),
+		// 		Resonz.ar(source, freq*harm*detune, bandwidth, mul:harma) * 50
+		// 	].wchoose([0.2,0.8]);
+		// 	var snd = Splay.ar(generator,spread);
+		// 	snd
+		// }.play;
+		// )
+
+		// http://sccode.org/1-51n
+		SynthDef("kalimba",{
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=0.8,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=0.5;
+			var snd,env,click,mix;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			hz=Lag.kr(hz,portamento);
+			env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+			mix=LinLin.kr(mod4,-1,1,0.01,0.4);
+			
+			// Basic tone is a SinOsc
+			snd = SinOsc.ar((hz.cpsmidi+mod4).midicps);
+			snd = HPF.ar( LPF.ar(snd, 380), 40);
+			// The "clicking" sounds are modeled with a bank of resonators excited by enveloped white noise
+			click = DynKlank.ar(`[
+				// the resonant frequencies are randomized a little to add variation
+				// there are two high resonant freqs and one quiet "bass" freq to give it some depth
+				[240*ExpRand(0.97, 1.02), 2020*ExpRand(0.97, 1.02), 3151*ExpRand(0.97, 1.02)],
+				[-9, 0, -5].dbamp,
+				[0.8, 0.07, 0.08]
+			], BPF.ar(PinkNoise.ar, Rand(5500,8500), Rand(0.05,0.2)) * EnvGen.ar(Env.perc(0.001, 0.01)));
+			snd = (snd*mix) + (click*(1-mix));
+			snd = Splay.ar(snd,center:Rand(-1,1)*LinLin.kr(mod1,-1,1,0,1));
+
+			snd=Vibrato.ar(
+				snd,
+				rate:LinExp.kr(mod2,-1,1,0.0001,20),
+				depth:LinExp.kr(mod3,-1,1,0.0001,1)
+			);
+			
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
+			Out.ar(out,snd*env*amp);
+		}).add;
+
+		SynthDef("mdapiano",{
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
+			var snd,env,tuning;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			hz=Lag.kr(hz,portamento);
+			env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+
+			tuning=LinLin.kr(Clip.kr(mod4),0,1,0,1);
+			snd=MdaPiano.ar(
+				freq:hz,
+				gate:gate,
+				decay:decay,
+				release:release,
+				stereo:LinLin.kr(mod1,-1,1,0.3,1),
+				vel:LinLin.kr(amp,0,1,0,127),
+				tune:Rand(0.5+tuning.neg,0.5+tuning)
+			);
+			snd=Vibrato.ar(
+				snd,
+				rate:LinExp.kr(mod2,-1,1,0.0001,20),
+				depth:LinExp.kr(mod3,-1,1,0.0001,1)
+			);
+			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
+			Out.ar(out,snd*env*amp/12);
+		}).add;
+
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
 		SynthDef("PolyPerc",{
 			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
@@ -383,7 +471,7 @@ Engine_MxSynths : CroneEngine {
 					});
 				});
 			});
-			mxVoicesOn.put(note,1);
+			fnNoteAdd.(note);
 		};
 
 		fnNoteOnPoly={
@@ -430,8 +518,27 @@ Engine_MxSynths : CroneEngine {
 					\duration,duration,
 				]);
 			);
-			mxVoicesOn.put(note,1);
 			NodeWatcher.register(mxVoices.at(note));
+			fnNoteAdd.(note);
+		};
+
+		fnNoteAdd={
+			arg note;
+			var oldestNote=0;
+			var oldestNoteVal=10000000;
+			mxPolyphonyCount=mxPolyphonyCount+1;
+			mxVoicesOn.put(note,mxPolyphonyCount);
+			if (mxVoicesOn.size>mxPolyphonyMax,{
+				// remove the oldest voice
+				mxVoicesOn.keysValuesDo({ arg key, val;
+					if (val<oldestNoteVal,{
+						oldestNoteVal=val;
+						oldestNote=key;
+					});	
+				});
+				("max polyphony reached, removing note "++oldestNote).postln;
+				fnNoteOff.(oldestNote);
+			});
 		};
 
 		// intialize helper functions
@@ -449,13 +556,15 @@ Engine_MxSynths : CroneEngine {
 		
 		fnNoteOff = {
 			arg note;
-			// ("note off: "++note).postln;
-
-			// if monophonic, remove all the other sounds
-			if (mxParameters.at("monophonic")>0,{
-				fnNoteOffMono.(note);
-			},{
-				fnNoteOffPoly.(note);
+			// ("note off: "++note).postln;		
+			// remove it it hasn't already been removed	and synth gone	
+			if ((mxVoices.at(note).isRunning==false)&&(mxVoicesOn.at(note)==nil),{},{
+				// if monophonic, remove all the other sounds
+				if (mxParameters.at("monophonic")>0,{
+					fnNoteOffMono.(note);
+				},{
+					fnNoteOffPoly.(note);
+				});
 			});
 		};
 
@@ -598,6 +707,10 @@ Engine_MxSynths : CroneEngine {
 			var val=msg[1].asSymbol;
 			// ("setting synth to "++val).postln;
 			mxParameters.put("synth",val.asSymbol);
+		});
+
+		this.addCommand("mx_set_polyphony","i",{ arg msg;
+			mxPolyphonyMax=msg[1];
 		});
 
 		this.addCommand("mx_set","sf",{ arg msg;
