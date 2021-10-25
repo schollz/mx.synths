@@ -283,12 +283,15 @@ function MxSynths:new(args)
   end
 
   l.ready=false
+  l:setup_arp()
+  l:setup_chord_sequencer()
 
   if args.previous==true then
     if util.file_exists(_path.data.."mx.synths/default.pset") then
       params:read(_path.data.."mx.synths/default.pset")
     end
   end
+  params:set("chordy_start",0)
   params:bang()
   l:refresh_params()
   l:run()
@@ -300,8 +303,6 @@ function MxSynths:new(args)
   -- params:set("lfo_mxsynths_mod3",2)
   -- params:set("lfo_mxsynths_mod4",2)
 
-  l:setup_arp()
-  l:setup_chord_sequencer()
 
   l.ready=true
 

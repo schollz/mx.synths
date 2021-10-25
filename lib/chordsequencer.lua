@@ -27,7 +27,11 @@ function ChordSequencer:init()
   params:add{type='binary',name="generate chords",id='chordy_generate',behavior='momentary',
     action=function(v)
       if v==1 then
-        params:set("chordy_chords",table.concat(fourchords:random_weighted()," "))
+        if math.random()<0.5 then
+          params:set("chordy_chords",table.concat(fourchords:random_weighted()," "))
+        else
+          params:set("chordy_chords",table.concat(fourchords:random_unpopular()," "))
+        end
         if params:get("chordy_start")==1 then 
           self:stop()
           self:start()

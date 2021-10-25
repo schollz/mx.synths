@@ -15,37 +15,86 @@ function Arp:new(o)
   return o
 end
 
-function Arp:make_menu()
-  -- TODO: add menu
-end
-
 function Arp:init()
-  -- define time signature
-  self.time_signature=2
-  self.time_signatures={"1/32","1/16","1/16T","1/8","1/8T","1/4","1/2","1"}
-  self.time_divisions={1/32,1/16,1/12,1/8,1/6,1/4,1/2,1}
+  self:sequencer_init()
 
-  -- define duration (number of 1/16th notes)
-  self.duration=8
+  params:add_group("ARP",8)
+
+  params:add{type='binary',name="start/stop",id='arp_start',behavior='toggle',
+    action=function(v)
+      if v==1 then
+        self:sequencer_start()
+      else
+        self:sequencer_stop()
+      end
+    end
+  }
+
+  -- define time signature
+  self.time_signatures={"1","1/2","1/4","1/8T","1/8","1/16T","1/16","1/32"}
+  self.time_divisions={1,1/2,1/4,1/6,1/8,1/12,1/16,1/32}
+  params:add_option("arp_time_signature","time signature",self.time_signatures,5)
+  params:set_action("arp_time_signature",function(x)
+    self.pattern_note_off:set_division(self.time_divisions[x])
+    self.pattern_note_on:set_division(self.time_divisions[x])
+  end)
+
+  -- define duration of a note
+  params:add {
+    type='control',
+    id="arp_duration",
+    name="note duration",
+    controlspec=controlspec.new(0,100,'lin',1,50,'%',1/100),
+    action=function(x)
+      self.pattern_note_off:set_delay(x/100)
+    end
+  }
 
   -- define length multiplier
   -- which will increase the arpeggio over more octaves
-  self.length=1
+  params:add {
+    type='control',
+    id="arp_length",
+    name="arp length",
+    controlspec=controlspec.new(0,4,'lin',0.1,1,'x',0.1/4),
+  }
+  params:set_action("arp_length",function(x)
+    self:refresh()
+  end)
 
   -- define possible shapes
-  self.shape=1
   self.shapes={"up","down","up-down","down-up","converge","diverge","converge-diverge","diverge-converge","random"}
+  params:add_option("arp_shape","shape",self.shapes,1)
+  params:set_action("arp_shape",function(x)
+    self:refresh()
+  end)
+
 
   -- define possible modes
-  self.mode=1
   self.modes={"12","+12,-12","+7,+9,-5","2,4,5,7,9"}
+  params:add_option("arp_mode","mode",self.modes,1)
+  params:set_action("arp_mode",function(x)
+    self:refresh()
+  end)
 
   -- define the trigger that will trigger the mode
-  self.trigger=1
   self.triggers={"none","first","last","each"}
+  params:add_option("arp_trigger","mode trigger",self.triggers,1)
+  params:set_action("arp_trigger",function(x)
+    self:refresh()
+  end)
 
   -- the original notes
   self.notes={}
+
+  -- the hold notes
+  self.hold_notes={}
+
+  -- define hold mode
+  params:add{type='binary',name="hold",id='arp_hold',behavior='toggle'}
+  params:set_action("arp_hold",function(x)
+    self:refresh()
+  end)
 
   -- the sequins sequence
   self.seq=nil
@@ -54,8 +103,6 @@ end
 function Arp:sequencer_init()
   local lattice=include("mx.synths/lib/lattice")
   self.lattice=lattice:new{}
-  local division=1/8 -- TODO make this configurable
-  local note_off_offset = 0.5 -- TODO make this configurable (note length)
 
   local notes_on = {} -- keeps track of which notes are on
   self.pattern_note_on=self.lattice:new_pattern{
@@ -69,7 +116,7 @@ function Arp:sequencer_init()
         end
       end
     end,
-    division=division,
+    division=1/16,
   }
   self.pattern_note_off=self.lattice:new_pattern{
     action=function(t)
@@ -81,8 +128,8 @@ function Arp:sequencer_init()
         end
       end
     end,
-    division=division,
-    offset=note_off_offset,
+    division=1/16,
+    offset=0.5,
   }
 end
 
@@ -100,15 +147,19 @@ end
 
 function Arp:refresh()
   self.seq=nil
-  if #self.notes==0 then
+  local notes=self.notes 
+  if params:get("arp_hold")==1 then 
+    notes=self.hold_notes
+  end
+  if #notes==0 then
     do return end
   end
 
   -- first sort the notes
-  table.sort(self.notes)
+  table.sort(notes)
   
   -- define the root
-  local root=self.notes[1]
+  local root=notes[1]
 
   -- hold the temporary sequence
   local s={}
@@ -116,13 +167,13 @@ function Arp:refresh()
   -- first setup the basic sequence
   -- with arbitrary number of octaves
   for octave=0,4 do
-    for i,n in ipairs(self.notes) do
+    for i,n in ipairs(notes) do
       table.insert(s,n+(octave*12))
     end
   end
 
   -- truncate the sequence to the length
-  local notes_total=math.floor(self.length*#self.notes)
+  local notes_total=math.floor(params:get("arp_length")*#notes)
   if notes_total==0 then
     do return end
   end
@@ -135,12 +186,12 @@ function Arp:refresh()
   end
 
   -- create the sequence based on the shapes
-  if self.shapes[self.shape]=="down" then
+  if self.shapes[params:get("arp_shape")]=="down" then
     -- down
     -- 1 2 3 4 5 becomes
     -- 5 4 3 2 1
     s=s_reverse
-  elseif self.shapes[self.shape]=="up-down" then
+  elseif self.shapes[params:get("arp_shape")]=="up-down" then
     -- up-down
     -- 1 2 3 4 5 becomes
     -- 1 2 3 4 5 4 3 2
@@ -149,7 +200,7 @@ function Arp:refresh()
         table.insert(s,n)
       end
     end
-  elseif self.shapes[self.shape]=="down-up" then
+  elseif self.shapes[params:get("arp_shape")]=="down-up" then
     -- down-up
     -- 1 2 3 4 5 become
     -- 5 4 3 2 1 2 3 4
@@ -167,23 +218,23 @@ function Arp:refresh()
 
   -- now "s" has the basic sequence
   -- add the special notes based on root
-  if self.triggers[self.trigger]~="none" then
+  if self.triggers[params:get("arp_trigger")]~="none" then
     local ss=Sequins{root+12}
-    if self.modes[self.mode]=="+12,-12" then
+    if self.modes[params:get("arp_mode")]=="+12,-12" then
       ss=Sequins{root+12,root-12}
-    elseif self.modes[self.mode]=="+7,+9,-5" then
+    elseif self.modes[params:get("arp_mode")]=="+7,+9,-5" then
       ss=Sequins{root+7,root+9,root-5}
-    elseif self.modes[self.mode]=="2,4,5,7,9" then
+    elseif self.modes[params:get("arp_mode")]=="2,4,5,7,9" then
       ss=Sequins{root+2,root+4,root+5,root+7,root+9}
     end
     local s2={}
     for i,n in ipairs(s) do
       table.insert(s2,n)
-      if i==1 and self.triggers[self.trigger]=="first" then
+      if i==1 and self.triggers[params:get("arp_trigger")]=="first" then
         table.insert(s2,ss)
-      elseif i==#s and self.triggers[self.trigger]=="last" then
+      elseif i==#s and self.triggers[params:get("arp_trigger")]=="last" then
         table.insert(s2,ss)
-      elseif self.triggers[self.trigger]=="each" then
+      elseif self.triggers[params:get("arp_trigger")]=="each" then
         table.insert(s2,ss)
       end
     end
@@ -217,6 +268,7 @@ function Arp:add(note)
     self:remove(note)
   end
   table.insert(self.notes,note)
+  self.hold_notes={table.unpack(self.notes)}
   self:refresh()
   print("Arp: added "..note)
 end
