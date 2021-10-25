@@ -1,6 +1,9 @@
 local ChordSequencer={}
 
 local music=include("mx.synths/lib/music")
+local lattice=include("mx.synths/lib/lattice")
+local fourchords_=include("mx.synths/lib/fourchords")
+local fourchords=fourchords_:new({fname=_path.code.."mx.synths/lib/4chords_top1000.txt"})
 
 function ChordSequencer:new(o)
   o=o or {}
@@ -18,6 +21,17 @@ function ChordSequencer:init()
         self:start()
       else
         self:stop()
+      end
+    end
+  }
+  params:add{type='binary',name="generate chords",id='chordy_generate',behavior='momentary',
+    action=function(v)
+      if v==1 then
+        params:set("chordy_chords",table.concat(fourchords:random_weighted()," "))
+        if params:get("chordy_start")==1 then 
+          self:stop()
+          self:start()
+        end        
       end
     end
   }

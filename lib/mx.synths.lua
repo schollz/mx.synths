@@ -1,6 +1,5 @@
 local MusicUtil=require "musicutil"
 local Formatters=require 'formatters'
-local fourchords_=include("mx.synths/lib/fourchords")
 local chordsequencer_=include("mx.synths/lib/chordsequencer")
 
 local MxSynths={}
@@ -311,11 +310,9 @@ end
 
 function MxSynths:setup_chord_sequencer()
   -- initiate sequencer
-  fourchords=fourchords_:new({fname=_path.code.."mx.synths/lib/4chords_top1000.txt"})
   chordy=chordsequencer_:new()
   chordy:chord_on(function(data)
     print("synthy: playing "..data[1])
-    synthy.chord=data[1]
     -- data[1] is chord name
     -- data[2] is table of parameters
     -- data[2][..].m is midi value
