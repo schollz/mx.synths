@@ -1,5 +1,7 @@
 local MusicUtil=require "musicutil"
 local Formatters=require 'formatters'
+local fourchords_=include("mx.synths/lib/fourchords")
+local chordsequencer_=include("mx.synths/lib/chordsequencer")
 
 local MxSynths={}
 
@@ -300,10 +302,36 @@ function MxSynths:new(args)
   -- params:set("lfo_mxsynths_mod4",2)
 
   l:setup_arp()
+  l:setup_chord_sequencer()
 
   l.ready=true
 
   return l
+end
+
+function MxSynths:setup_chord_sequencer()
+  -- initiate sequencer
+  fourchords=fourchords_:new({fname=_path.code.."mx.synths/lib/4chords_top1000.txt"})
+  chordy=chordsequencer_:new()
+  chordy:chord_on(function(data)
+    print("synthy: playing "..data[1])
+    synthy.chord=data[1]
+    -- data[1] is chord name
+    -- data[2] is table of parameters
+    -- data[2][..].m is midi value
+    -- data[2][..].v is frequency
+    -- data[2][..].v is volts
+    -- data[2][..].n is name of note
+    for i,d in ipairs(data[2]) do
+      self:note_on(d.m,0.5,10)
+    end
+  end)
+  chordy:chord_off(function(data)
+    print("synthy: stopping "..data[1])
+    for i,d in ipairs(data[2]) do
+      self:note_off(d.m)
+    end
+  end)
 end
 
 function MxSynths:setup_arp()
