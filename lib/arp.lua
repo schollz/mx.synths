@@ -214,6 +214,81 @@ function Arp:refresh()
       end
     end
     s=s2
+  elseif self.shapes[params:get("arp_shape")]=="converge" then
+    -- converge
+    -- 1 2 3 4 5 becomes
+    -- 5 1 4 2 3
+    local s2={}
+    for i,n in ipairs(s_reverse) do
+      if #s2<#s then
+        table.insert(s2,n)
+        if #s2~=#s then
+          table.insert(s2,s_reverse[#s_reverse-(i-1)])
+        end
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="diverge" then
+     -- diverge
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 4 3
+    local s2={}
+    for i,n in ipairs(s) do
+      if #s2<#s then
+        table.insert(s2,n)
+        if #s2~=#s then
+          table.insert(s2,s[#s-(i-1)])
+        end
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="converge-diverge" then
+     -- converge-diverge
+    -- 1 2 3 4 5 becomes
+    -- 5 1 4 2 3 2 4 1
+    local s2={}
+    for i,n in ipairs(s_reverse) do
+      if #s2<#s_reverse then
+        table.insert(s2,n)
+        if #s2~=#s_reverse then
+          table.insert(s2,s_reverse[#s_reverse-(i-1)])
+        end
+      end
+    end
+    for i=#s2,1,-1 do
+      if i>1 and i<#s2 then
+        table.insert(s2,s2[i])
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="diverge-converge" then
+     -- diverge-converge
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 4 3 4 2 5
+    local s2={}
+    for i,n in ipairs(s) do
+      if #s2<#s then
+        table.insert(s2,n)
+        if #s2~=#s then
+          table.insert(s2,s[#s-(i-1)])
+        end
+      end
+    end
+    for i=#s2,1,-1 do
+      if i>1 and i<#s2 then
+        table.insert(s2,s2[i])
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="random" then
+    -- random
+    -- 1 2 3 4 5 becomes
+    -- 2 3 1 5 4 or 3 1 2 4 5 or ...
+    for i,n in ipairs(s) do
+      math.randomseed(os.time())
+      local j = math.random(i)
+      s[i], s[j] = s[j], s[i]
+    end
   end
 
   -- now "s" has the basic sequence
