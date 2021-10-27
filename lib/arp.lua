@@ -63,7 +63,7 @@ function Arp:init()
   end)
 
   -- define possible shapes
-  self.shapes={"up","down","up-down","down-up","converge","diverge","converge-diverge","diverge-converge","random"}
+  self.shapes={"up","down","up-down","down-up","converge","diverge","converge-diverge","diverge-converge","pinky up","pinky up-down","thumb up","thumb up-down","random"}
   params:add_option("arp_shape","shape",self.shapes,1)
   params:set_action("arp_shape",function(x)
     self:refresh()
@@ -277,6 +277,65 @@ function Arp:refresh()
     for i=#s2,1,-1 do
       if i>1 and i<#s2 then
         table.insert(s2,s2[i])
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="pinky up" then
+    -- pinky up
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 5 3 5 4 5
+    local s2={}
+    for i,n in ipairs(s) do
+      if i<#s then
+        table.insert(s2,n)
+        table.insert(s2,#s)
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="pinky up-down" then
+    -- pinky up-down
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 5 3 5 4 5 4 5 3 5 2 5
+    for i,n in ipairs(s) do
+      if i>1 and i<#s then
+        table.insert(s2,n)
+        table.insert(s2,#s)
+      end
+    end
+    for i,n in ipairs(s_reverse) do
+      if i>1 and i<#s_reverse then
+        table.insert(s2,n)
+        table.insert(s2,#s)
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="thumb up" then
+    -- thumb up
+    -- 1 2 3 4 5 becomes
+    -- 1 2 1 3 1 4 1 5
+    local s2={}
+    for i,n in ipairs(s) do
+      if i>1 then
+        table.insert(s2,s[1])
+        table.insert(s2,n)
+      end
+    end
+    s=s2
+  elseif self.shapes[params:get("arp_shape")]=="thumb up-down" then
+    -- thumb up-down
+    -- 1 2 3 4 5 becomes
+    -- 1 2 1 3 1 4 1 5 1 4 1 3 1 2
+    local s2={}
+    for i,n in ipairs(s) do
+      if i>1 then
+        table.insert(s2,s[1])
+        table.insert(s2,n)
+      end
+    end
+    for i,n in ipairs(s_reverse) do
+      if i>1 and i<#s_reverse then
+        table.insert(s2,s[1])
+        table.insert(s2,n)
       end
     end
     s=s2
