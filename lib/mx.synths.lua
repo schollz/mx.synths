@@ -344,10 +344,8 @@ function MxSynths:setup_arp()
   end
 end
 
-local do_arp=true 
-
 function MxSynths:note_on(note,amp,duration)
-  if do_arp then 
+  if params:get("arp_start")==1 then 
     self.arp:add(note)
     self.arp:sequencer_start()
   else
@@ -356,11 +354,8 @@ function MxSynths:note_on(note,amp,duration)
 end
 
 function MxSynths:note_off(note)
-  if do_arp then 
-    self.arp:remove(note)
-  else
-    engine.mx_note_on(note,amp,duration)
-  end
+  self.arp:remove(note)
+  engine.mx_note_on(note,amp,duration)
 end
 
 function MxSynths:play(s)

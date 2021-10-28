@@ -385,7 +385,7 @@ function Arp:refresh()
 end
 
 function Arp:next()
-  if self.seq~=nil then
+  if self.seq~=nil and params:get("arp_start")==1 then
     do return self.seq() end
   end
 end
