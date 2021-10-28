@@ -531,6 +531,9 @@ function MxSynths:setup_midi()
           self:note_on(d.note,self.velocities[params:get("mxsynths_sensitivity")][math.floor(d.vel+1)]/127,600)
         elseif d.type=="note_off" then
           self:note_off(d.note)
+        elseif d.type=="pitchbend" then
+          local bend_st = (util.round(d.val / 2)) / 8192 * 2 -1 -- Convert to -1 to 1
+          engine.mx_set("bend", bend_st * params:get("bend_range"))
         elseif d.cc==64 then -- sustain pedal
           local val=d.val
           if val>126 then
@@ -560,6 +563,8 @@ function MxSynths:setup_midi()
     mididevice[mididevice_list[v]].active=true
   end)
   params:add{type="option",id="midichannel",name="midi ch",options=midi_channels,default=1}
+  params:add_number("bend_range", "bend range", 1, 48, 2)
+
 
   if #mididevice_list>1 then
     params:set("midi",2)

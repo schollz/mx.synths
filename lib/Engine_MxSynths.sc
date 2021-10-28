@@ -28,7 +28,7 @@ Engine_MxSynths : CroneEngine {
 		// initialize variables
 		mxParameters=Dictionary.with(*["synth"->"synthy","sub"->1.0,"amp"->1.0,
 			"portamento"->0.0,"monophonic"->0.0,
-			"pan"->0.0,"tune"->0.0,
+			"pan"->0.0,"tune"->0.0,"bend"->0.0,
 			"attack"->1.0,"decay"->0.2,"sustain"->0.9,"release"->5.0,
 			"mod1"->0.0,"mod2"->0.0,"mod3"->0.0,"mod4"->0.0]);
 		mxVoices=Dictionary.new;
@@ -71,12 +71,12 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 		SynthDef("synthy",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,note,env,detune,stereo,lowcut,chorus,res;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-			note=Lag.kr(hz,portamento).cpsmidi;
+			note=Lag.kr(hz,portamento).cpsmidi+bend;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			sub=Lag.kr(sub,1);
 			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))*sub);
@@ -97,11 +97,11 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 		SynthDef("casio",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var freq, env, freqBase, freqRes, pdbase, pd, pdres, pdi, snd,res,detuning,artifacts,phasing;
-			hz=Lag.kr(hz,portamento);
+			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			artifacts=LinLin.kr(mod1,-1,1,1,10);
@@ -122,7 +122,7 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 		SynthDef("icarus",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=1.0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=1.0,portamento=1,bend=0,
 			attack=0.1,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=1;
 			var bass,basshz,feedback=0.5,delaytime=0.25, delaytimelag=0.1;
@@ -134,7 +134,7 @@ Engine_MxSynths : CroneEngine {
 			pwmwidth=LinLin.kr(mod3,-1,1,0.1,0.9);
 			detuning=LinExp.kr(mod4,-1,1,0.01,1);
 
-			hz=Lag.kr(hz,portamento);
+			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			snd=Mix.new({VarSaw.ar(
 				hz+(SinOsc.kr(LFNoise0.kr(1),Rand(0,3))*
 					(((hz).cpsmidi+1).midicps-(hz))*detuning),
@@ -183,7 +183,7 @@ Engine_MxSynths : CroneEngine {
 
 		// port of STK's Rhodey (yamaha DX7-style Fender Rhodes) https://sccode.org/1-522
 		SynthDef("epiano",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 
@@ -194,7 +194,7 @@ Engine_MxSynths : CroneEngine {
 			var env;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-			hz=Lag.kr(hz,portamento);
+			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			lfoDepth=LinExp.kr(mod1,-1,1,0.01,1);
 			mix=LinLin.kr(mod2,-1,1,0.0,0.4);
 			modIndex=LinExp.kr(mod3,-1,1,0.01,4);
@@ -222,7 +222,7 @@ Engine_MxSynths : CroneEngine {
 
 
 		SynthDef("toshiya",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,note,env,detune,stereo,lowcut,chorus,klanky,klankyvol;
@@ -232,7 +232,7 @@ Engine_MxSynths : CroneEngine {
 			lowcut=LinExp.kr(mod3,-1,1,25,11000);
 			chorus=LinExp.kr(mod4,-1,1,0.2,5);
 			
-			note=Lag.kr(hz,portamento).cpsmidi;
+			note=Lag.kr(hz,portamento).cpsmidi + bend;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			sub=Lag.kr(sub,1);
 			snd=Pan2.ar(SinOsc.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))/12*amp,SinOsc.kr(0.1,mul:0.2))*sub;
@@ -250,7 +250,7 @@ Engine_MxSynths : CroneEngine {
 		}).add;
 
 		SynthDef("malone",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,note,env, basshz,bass, detuning,pw, res,filt,detuningSpeed;
@@ -260,7 +260,7 @@ Engine_MxSynths : CroneEngine {
 			filt=LinLin.kr(mod2,-1,1,2,10);
 			res=LinExp.kr(mod3,-1,1,0.25,4);
 			detuning=LinExp.kr(mod4,-1,1,0.002,0.8);
-			hz=Lag.kr(hz,portamento);
+			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			note=hz.cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			snd=Mix.ar(Array.fill(2,{
@@ -316,12 +316,12 @@ Engine_MxSynths : CroneEngine {
 
 		// http://sccode.org/1-51n
 		SynthDef("kalimba",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=0.8,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=0.5;
 			var snd,env,click,mix;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-			hz=Lag.kr(hz,portamento);
+			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			mix=LinLin.kr(mod4,-1,1,0.01,0.4);
 			
@@ -379,7 +379,7 @@ Engine_MxSynths : CroneEngine {
 
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
 		SynthDef("PolyPerc",{
-			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,filt,env,pw,co,gain,detune,note;
@@ -389,7 +389,7 @@ Engine_MxSynths : CroneEngine {
 			co=LinExp.kr(mod2,-1,1,hz,Clip.kr(10*hz,200,18000));
 			gain=LinLin.kr(mod3,-1,1,0.25,3);
 			detune=LinExp.kr(mod4,-1,1,0.00001,0.3);
-			note=hz.cpsmidi;
+			note=hz.cpsmidi + bend;
 			snd = Pulse.ar([note-detune,note+detune].midicps, pw);
 			snd = MoogFF.ar(snd,co,gain);
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
@@ -400,7 +400,7 @@ Engine_MxSynths : CroneEngine {
 		// https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
 		SynthDef("piano",{
 			arg out=0,hz=220,amp=1.0,pan=0,gate=1,
-			sub=0,portamento=1,
+			sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,duration=600;
 			var snd,note,env, damp;
@@ -417,7 +417,7 @@ Engine_MxSynths : CroneEngine {
 			tune_up=1+LinLin.kr(mod4,-1,1,0.0001,0.0005*4);
 			tune_down=1-LinLin.kr(mod4,-1,1,0.00005,0.0004*4);
 			
-			hz=Lag.kr(hz,portamento);
+			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
 			damp = 0;
@@ -504,6 +504,7 @@ Engine_MxSynths : CroneEngine {
 					\amp,amp*mxParameters.at("amp"),
 					\out,mxBusFx,
 					\hz,(note+mxParameters.at("tune")).midicps,
+					\bend,mxParameters.at("bend"),
 					\pan,mxParameters.at("pan"),
 					\sub,sub*mxParameters.at("sub"),
 					\attack,mxParameters.at("attack"),
@@ -558,7 +559,7 @@ Engine_MxSynths : CroneEngine {
 			arg note;
 			// ("note off: "++note).postln;		
 			// remove it it hasn't already been removed	and synth gone	
-			if ((mxVoices.at(note).isRunning==false)&&(mxVoicesOn.at(note)==nil),{},{
+			if ((mxVoices.at(note) == nil) || ((mxVoices.at(note).isRunning==false)&&(mxVoicesOn.at(note)==nil)),{},{
 				// if monophonic, remove all the other sounds
 				if (mxParameters.at("monophonic")>0,{
 					fnNoteOffMono.(note);
