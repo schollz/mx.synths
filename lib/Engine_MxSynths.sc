@@ -365,7 +365,7 @@ Engine_MxSynths : CroneEngine {
 				decay:decay,
 				release:release,
 				stereo:LinLin.kr(mod1,-1,1,0.3,1),
-				vel:LinLin.kr(amp,0,1,0,127),
+				vel:Rand(40,80),
 				tune:Rand(0.5+tuning.neg,0.5+tuning)
 			);
 			snd=Vibrato.ar(
@@ -374,7 +374,7 @@ Engine_MxSynths : CroneEngine {
 				depth:LinExp.kr(mod3,-1,1,0.0001,1)
 			);
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
-			Out.ar(out,snd*env*amp/12);
+			Out.ar(out,snd*env*amp/6);
 		}).add;
 
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
