@@ -288,7 +288,7 @@ function Arp:refresh()
     for i,n in ipairs(s) do
       if i<#s then
         table.insert(s2,n)
-        table.insert(s2,#s)
+        table.insert(s2,s[#s])
       end
     end
     s=s2
@@ -296,16 +296,17 @@ function Arp:refresh()
     -- pinky up-down
     -- 1 2 3 4 5 becomes
     -- 1 5 2 5 3 5 4 5 4 5 3 5 2 5
+    local s2={}
     for i,n in ipairs(s) do
       if i>1 and i<#s then
         table.insert(s2,n)
-        table.insert(s2,#s)
+        table.insert(s2,s[#s])
       end
     end
     for i,n in ipairs(s_reverse) do
       if i>1 and i<#s_reverse then
         table.insert(s2,n)
-        table.insert(s2,#s)
+        table.insert(s2,s[#s])
       end
     end
     s=s2

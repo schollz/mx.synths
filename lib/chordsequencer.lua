@@ -110,6 +110,14 @@ end
 function ChordSequencer:step(t)
   self.beat=self.beat+1
   if self.beat%params:get("chordy_beats_per_chord")==0 then
+    -- stop current chord
+    if self.chord_current~=nil and self.chord_current[1]~=nil then
+      print("chordsequencer: stopping "..self.chord_current[1])
+      if self.fn_note_off~=nil then
+        self.fn_note_off(self.chord_current)
+      end
+    end
+    -- start next chord
     self.measure=self.measure+1
     self.chord_current=self.chords[self.measure%#self.chords+1]
     print("chordsequencer: playing "..self.chord_current[1])
@@ -117,12 +125,7 @@ function ChordSequencer:step(t)
       self.fn_note_on(self.chord_current)
     end
   end
-  if self.beat%params:get("chordy_beats_per_chord")==params:get("chordy_beats_per_chord")-1 then
-    print("chordsequencer: stopping "..self.chord_current[1])
-    if self.fn_note_off~=nil then
-      self.fn_note_off(self.chord_current)
-    end
-  end
+
 end
 
 function ChordSequencer:chord_on(fn)
