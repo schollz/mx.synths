@@ -23,12 +23,23 @@ function Arp:init()
   params:add{type='binary',name="start/stop",id='arp_start',behavior='toggle',
     action=function(v)
       if v==1 then
-        self:sequencer_start()
+        self:start()
       else
-        self:sequencer_stop()
+        self:stop()
       end
     end
   }
+
+  -- define hold mode
+  params:add{type='binary',name="hold",id='arp_hold',behavior='toggle'}
+  params:set_action("arp_hold",function(x)
+    self:refresh()
+    if x==0 then 
+      self.hold_notes={}
+      self.notes={}
+      self.seq=nil
+    end
+  end)
 
   -- define time signature
   self.time_signatures={"1","1/2","1/4","1/8T","1/8","1/16T","1/16","1/32"}
@@ -90,20 +101,12 @@ function Arp:init()
   -- the hold notes
   self.hold_notes={}
 
-  -- define hold mode
-  params:add{type='binary',name="hold",id='arp_hold',behavior='toggle'}
-  params:set_action("arp_hold",function(x)
-    self:refresh()
-  end)
 
   -- the sequins sequence
   self.seq=nil
 end
 
 function Arp:sequencer_init()
-  local lattice=include("mx.synths/lib/lattice")
-  self.lattice=lattice:new{}
-
   local notes_on = {} -- keeps track of which notes are on
   self.pattern_note_on=self.lattice:new_pattern{
     action=function(t)
@@ -120,7 +123,7 @@ function Arp:sequencer_init()
   }
   self.pattern_note_off=self.lattice:new_pattern{
     action=function(t)
-      -- trigger next note in sequence
+      -- trigger next note-off in sequence
       if self.note_off~=nil then
         for note,_ in pairs(notes_on) do
           self.note_off(note)
@@ -128,30 +131,44 @@ function Arp:sequencer_init()
         end
       end
     end,
+
+
+
+
+
     division=1/16,
-    offset=0.5,
+    delay=0.5,
   }
 end
 
-function Arp:sequencer_start()
-  if not self.sequencer_started then
-    self.lattice:hard_restart()
-  end
-  self.sequencer_started=true
+function Arp:stop()
+  print("arp: stop")
+  self.pattern_note_on:stop()
+  self.pattern_note_off:stop()
+  self.lattice:stop_x()
+  self.playing=nil
+  self.notes={}
+  self.seq=nil
 end
 
-function Arp:sequencer_stop()
-  self.lattice:stop()
-  self.sequencer_started=false
+function Arp:start(force)
+  if self.playing==nil then
+    print("arp: start")
+    self:refresh()
+    self.pattern_note_on:start()
+    self.pattern_note_off:start()
+    self.lattice:start_x()
+    self.playing=true
+  end
 end
 
 function Arp:refresh()
-  self.seq=nil
   local notes=self.notes 
   if params:get("arp_hold")==1 then 
     notes=self.hold_notes
   end
   if #notes==0 then
+    self.seq=nil
     do return end
   end
 
@@ -175,6 +192,7 @@ function Arp:refresh()
   -- truncate the sequence to the length
   local notes_total=math.floor(params:get("arp_length")*#notes)
   if notes_total==0 then
+    self.seq=nil
     do return end
   end
   s={table.unpack(s,1,notes_total)}
@@ -405,19 +423,28 @@ function Arp:add(note)
   table.insert(self.notes,note)
   self.hold_notes={table.unpack(self.notes)}
   self:refresh()
-  print("Arp: added "..note)
+  --print("Arp: added "..note)
 end
 
 function Arp:remove(note)
+  local found_note=false
   local notes={}
   for i,n in ipairs(self.notes) do
     if n~=note then
       table.insert(notes,n)
+    else 
+      found_note=true
     end
   end
+  if not found_note then 
+    do return end
+  end
   self.notes=notes
+  if params:get("arp_hold")==0 then 
+    self.hold_notes={table.unpack(self.notes)}
+  end
   self:refresh()
-  print("Arp: removed "..note)
+  --print("Arp: removed "..note)
 end
 
 -- local arp=Arp:new()

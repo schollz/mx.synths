@@ -1,9 +1,11 @@
 local ChordSequencer={}
 
 local music=include("mx.synths/lib/music")
-local lattice=include("mx.synths/lib/lattice")
 local fourchords_=include("mx.synths/lib/fourchords")
 local fourchords=fourchords_:new({fname=_path.code.."mx.synths/lib/4chords_top1000.txt"})
+-- https://monome.org/docs/norns/reference/lib/sequins
+local Sequins=require 'sequins'
+
 
 function ChordSequencer:new(o)
   o=o or {}
@@ -14,7 +16,7 @@ function ChordSequencer:new(o)
 end
 
 function ChordSequencer:init()
-  params:add_group("CHORDY",6)
+  params:add_group("CHORDS",7)
   params:add{type='binary',name="start/stop",id='chordy_start',behavior='toggle',
     action=function(v)
       if v==1 then
@@ -62,86 +64,99 @@ function ChordSequencer:init()
     params:set("chordy_chords_show",table.concat(chords," "))
   end)
 
-  -- start lattice
-  self.sequencer=lattice:new{
-    ppqn=16
-  }
-  self.sequencer:new_pattern({
-    action=function(t)
-      self:step(t)
-    end,
-    division=1/4,
-  })
+  self:sequencer_init()
 end
 
-function ChordSequencer:start()
-  local chord_text=params:get("chordy_chords_show")
-  if chord_text=="" then
-    print("no chords to play")
-    do return end
-  end
-  self.chords={}
-  for chord in chord_text:gmatch("%S+") do
-    local data=music.chord_to_midi(chord..":"..params:get("chordy_octave"))
-    if data~=nil then
-      table.insert(self.chords,{chord,data})
-      print("chordsequencer: added "..chord)
-    end
-  end
-  self.beat=-1
-  self.measure=-1
-  self.chord_current=nil
-  self.sequencer:hard_restart()
-  if self.fn_start~=nil then
-    self.fn_start()
-  end
+function ChordSequencer:sequencer_init()
+  self.notes_on = {} -- keeps track of which notes are on
+  self.pattern_note_on=self.lattice:new_pattern{
+    action=function(t)
+      -- trigger next note in sequence
+      if self.note_on~=nil then
+        local notes_new=self:next()
+        if notes_new~=nil then
+          for _, note_new in ipairs(notes_new) do
+            self.notes_on[note_new]=true
+            self.note_on(note_new)
+          end
+        end
+      end
+    end,
+    division=0.5,
+  }
+  self.pattern_note_off=self.lattice:new_pattern{
+    action=function(t)
+      -- trigger next note-off in sequence
+      if self.note_off~=nil then
+        for note,_ in pairs(self.notes_on) do
+          self.note_off(note)
+          self.notes_on[note]=nil
+        end
+      end
+    end,
+    division=0.5,
+    delay=0.9,
+  }
 end
 
 function ChordSequencer:stop()
-  self.sequencer:stop()
-  if self.fn_note_off~=nil and self.chord_current~=nil then
-    self.fn_note_off(self.chord_current)
-  end
-  if self.fn_stop~=nil then
-    self.fn_stop()
+  print("chordsequencer: stop")
+  self.pattern_note_on:stop()
+  self.pattern_note_off:stop()
+  self.lattice:stop_x()
+  self.seq=nil
+  for note,_ in pairs(self.notes_on) do
+    if self.note_off~=nil then
+      self.note_off(note)
+    end
+    self.notes_on[note]=nil
   end
 end
 
-function ChordSequencer:step(t)
-  self.beat=self.beat+1
-  if self.beat%params:get("chordy_beats_per_chord")==0 then
-    -- stop current chord
-    if self.chord_current~=nil and self.chord_current[1]~=nil then
-      print("chordsequencer: stopping "..self.chord_current[1])
-      if self.fn_note_off~=nil then
-        self.fn_note_off(self.chord_current)
+function ChordSequencer:start()
+  print("chordsequencer: start")
+  self:refresh()
+  self.pattern_note_on:start()
+  self.pattern_note_off:start()
+  self.lattice:start_x()
+end
+
+function ChordSequencer:refresh()
+  local chord_text=params:get("chordy_chords_show")
+  if chord_text=="" then
+    self.seq=nil
+    do return end
+  end
+  local seq={}
+  for chord in chord_text:gmatch("%S+") do
+    local data=music.chord_to_midi(chord..":"..params:get("chordy_octave"))
+    if data~=nil then
+      local notes={}
+      for _,d in ipairs(data) do
+        table.insert(notes,d.m)
+      end
+      if #notes>0 then
+        table.insert(seq,notes)
       end
     end
-    -- start next chord
-    self.measure=self.measure+1
-    self.chord_current=self.chords[self.measure%#self.chords+1]
-    print("chordsequencer: playing "..self.chord_current[1])
-    if self.fn_note_on~=nil then
-      self.fn_note_on(self.chord_current)
-    end
   end
-
+  if #seq>0 then
+    print("refresh: "..#seq)
+    if self.seq==nil then 
+      self.seq=Sequins(seq)
+    else
+      self.seq:settable(seq)
+    end
+  else
+    self.seq=nil
+  end
 end
 
-function ChordSequencer:chord_on(fn)
-  self.fn_note_on=fn
+function ChordSequencer:next()
+  if self.seq~=nil then 
+    return self.seq()
+  end
 end
 
-function ChordSequencer:chord_off(fn)
-  self.fn_note_off=fn
-end
-
-function ChordSequencer:on_start(fn)
-  self.fn_start=fn
-end
-
-function ChordSequencer:on_stop(fn)
-  self.fn_stop=fn
-end
 
 return ChordSequencer

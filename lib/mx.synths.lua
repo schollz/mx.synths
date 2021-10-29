@@ -1,6 +1,8 @@
 local MusicUtil=require "musicutil"
 local Formatters=require 'formatters'
 local chordsequencer_=include("mx.synths/lib/chordsequencer")
+local lattice=include("mx.synths/lib/lattice")
+
 
 local MxSynths={}
 
@@ -283,6 +285,7 @@ function MxSynths:new(args)
   end
 
   l.ready=false
+  l.lattice=lattice:new{}
   l:setup_arp()
   l:setup_chord_sequencer()
 
@@ -306,38 +309,26 @@ function MxSynths:new(args)
 
   l.ready=true
 
+  --params:set("chordy_start",1)
+
   return l
 end
 
 function MxSynths:setup_chord_sequencer()
   -- initiate sequencer
-  chordy=chordsequencer_:new()
-  chordy:chord_on(function(data)
-    print("synthy: playing "..data[1])
-    -- data[1] is chord name
-    -- data[2] is table of parameters
-    -- data[2][..].m is midi value
-    -- data[2][..].v is frequency
-    -- data[2][..].v is volts
-    -- data[2][..].n is name of note
-    for i,d in ipairs(data[2]) do
-      self:note_on(d.m,0.5,10)
-    end
-  end)
-  chordy:chord_off(function(data)
-    print("synthy: stopping "..data[1])
-    for i,d in ipairs(data[2]) do
-      self:note_off(d.m)
-    end
-  end)
+  chordy=chordsequencer_:new({lattice=self.lattice})
+  chordy.note_on=function(note)
+    self:note_on(note,0.5,10)
+  end
+  chordy.note_off=function(note)
+    self:note_off(note)   
+  end
 end
 
 function MxSynths:setup_arp()
-  self.arp=Arp:new()
-  self.arp.shape=3
-  self.arp:sequencer_init()
+  self.arp=Arp:new({lattice=self.lattice})
   self.arp.note_on=function(note)
-    engine.mx_note_on(note,0.5,10)
+    engine.mx_note_on(note,0.5,2)
   end
   self.arp.note_off=function(note)
     engine.mx_note_off(note)
@@ -346,16 +337,25 @@ end
 
 function MxSynths:note_on(note,amp,duration)
   if params:get("arp_start")==1 then 
+    local do_restart=self.arp.seq==nil
     self.arp:add(note)
-    self.arp:sequencer_start()
+    if params:get("arp_hold")==0 and params:get("chordy_start")==0 and do_restart then 
+      self.lattice:hard_restart()
+      self.arp:start()
+    end
   else
+    print("note_on: "..note)
     engine.mx_note_on(note,amp,duration)
   end
 end
 
 function MxSynths:note_off(note)
-  self.arp:remove(note)
-  engine.mx_note_on(note,amp,duration)
+  if params:get("arp_start")==1 then 
+    self.arp:remove(note)
+    engine.mx_note_off(note)
+  else
+    engine.mx_note_off(note)
+  end
 end
 
 function MxSynths:play(s)
