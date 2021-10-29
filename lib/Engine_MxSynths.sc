@@ -559,7 +559,7 @@ Engine_MxSynths : CroneEngine {
 			arg note;
 			// ("note off: "++note).postln;		
 			// remove it it hasn't already been removed	and synth gone	
-			if ((mxVoices.at(note) == nil) || (mxVoicesOn.at(note)==nil),{},{
+			if ((mxVoices.at(note) == nil) || ((mxVoices.at(note).isRunning==false)&&(mxVoicesOn.at(note)==nil)),{},{
 				// if monophonic, remove all the other sounds
 				if (mxParameters.at("monophonic")>0,{
 					fnNoteOffMono.(note);

@@ -96,6 +96,8 @@ function Arp:init()
     self:refresh()
     if x==0 then 
       self.hold_notes={}
+      self.notes={}
+      self.seq=nil
     end
   end)
 
@@ -139,6 +141,8 @@ function Arp:stop()
   self.pattern_note_off:stop()
   self.lattice:stop_x()
   self.playing=nil
+  self.notes={}
+  self.seq=nil
 end
 
 function Arp:start(force)
