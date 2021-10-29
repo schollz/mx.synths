@@ -52,6 +52,7 @@ function Lattice:reset()
   params:set("clock_reset",1)
 end
 
+
 --- reset the norns clock and restart lattice
 function Lattice:hard_restart()
   self:reset()

@@ -30,6 +30,17 @@ function Arp:init()
     end
   }
 
+  -- define hold mode
+  params:add{type='binary',name="hold",id='arp_hold',behavior='toggle'}
+  params:set_action("arp_hold",function(x)
+    self:refresh()
+    if x==0 then 
+      self.hold_notes={}
+      self.notes={}
+      self.seq=nil
+    end
+  end)
+
   -- define time signature
   self.time_signatures={"1","1/2","1/4","1/8T","1/8","1/16T","1/16","1/32"}
   self.time_divisions={1,1/2,1/4,1/6,1/8,1/12,1/16,1/32}
@@ -90,16 +101,6 @@ function Arp:init()
   -- the hold notes
   self.hold_notes={}
 
-  -- define hold mode
-  params:add{type='binary',name="hold",id='arp_hold',behavior='toggle'}
-  params:set_action("arp_hold",function(x)
-    self:refresh()
-    if x==0 then 
-      self.hold_notes={}
-      self.notes={}
-      self.seq=nil
-    end
-  end)
 
   -- the sequins sequence
   self.seq=nil
@@ -130,6 +131,11 @@ function Arp:sequencer_init()
         end
       end
     end,
+
+
+
+
+
     division=1/16,
     delay=0.5,
   }
@@ -157,12 +163,12 @@ function Arp:start(force)
 end
 
 function Arp:refresh()
-  self.seq=nil
   local notes=self.notes 
   if params:get("arp_hold")==1 then 
     notes=self.hold_notes
   end
   if #notes==0 then
+    self.seq=nil
     do return end
   end
 
@@ -186,6 +192,7 @@ function Arp:refresh()
   -- truncate the sequence to the length
   local notes_total=math.floor(params:get("arp_length")*#notes)
   if notes_total==0 then
+    self.seq=nil
     do return end
   end
   s={table.unpack(s,1,notes_total)}
@@ -414,11 +421,9 @@ function Arp:add(note)
     self:remove(note)
   end
   table.insert(self.notes,note)
-  if params:get("arp_hold")==1 then
-    self.hold_notes={table.unpack(self.notes)}
-  end
+  self.hold_notes={table.unpack(self.notes)}
   self:refresh()
-  print("Arp: added "..note)
+  --print("Arp: added "..note)
 end
 
 function Arp:remove(note)
@@ -435,8 +440,11 @@ function Arp:remove(note)
     do return end
   end
   self.notes=notes
+  if params:get("arp_hold")==0 then 
+    self.hold_notes={table.unpack(self.notes)}
+  end
   self:refresh()
-  print("Arp: removed "..note)
+  --print("Arp: removed "..note)
 end
 
 -- local arp=Arp:new()

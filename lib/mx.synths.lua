@@ -328,7 +328,6 @@ end
 function MxSynths:setup_arp()
   self.arp=Arp:new({lattice=self.lattice})
   self.arp.note_on=function(note)
-    print("arp: "..note)
     engine.mx_note_on(note,0.5,2)
   end
   self.arp.note_off=function(note)
@@ -338,14 +337,12 @@ end
 
 function MxSynths:note_on(note,amp,duration)
   if params:get("arp_start")==1 then 
-    if params:get("arp_hold")==0 and params:get("chordy_start")==0 then 
-      -- restart lattice if there are no notes
-      if self.arp.seq==nil then 
-        self.lattice:hard_restart()
-      end
-    end
+    local do_restart=self.arp.seq==nil
     self.arp:add(note)
-    self.arp:start()
+    if params:get("arp_hold")==0 and params:get("chordy_start")==0 and do_restart then 
+      self.lattice:hard_restart()
+      self.arp:start()
+    end
   else
     print("note_on: "..note)
     engine.mx_note_on(note,amp,duration)

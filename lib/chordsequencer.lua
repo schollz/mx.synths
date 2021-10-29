@@ -16,7 +16,7 @@ function ChordSequencer:new(o)
 end
 
 function ChordSequencer:init()
-  params:add_group("CHORDY",6)
+  params:add_group("CHORDS",7)
   params:add{type='binary',name="start/stop",id='chordy_start',behavior='toggle',
     action=function(v)
       if v==1 then
@@ -72,7 +72,6 @@ function ChordSequencer:sequencer_init()
   self.pattern_note_on=self.lattice:new_pattern{
     action=function(t)
       -- trigger next note in sequence
-      print('on')
       if self.note_on~=nil then
         local notes_new=self:next()
         if notes_new~=nil then
@@ -88,7 +87,6 @@ function ChordSequencer:sequencer_init()
   self.pattern_note_off=self.lattice:new_pattern{
     action=function(t)
       -- trigger next note-off in sequence
-      print("delay")
       if self.note_off~=nil then
         for note,_ in pairs(self.notes_on) do
           self.note_off(note)
