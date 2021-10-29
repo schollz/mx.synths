@@ -309,7 +309,7 @@ function MxSynths:new(args)
 
   l.ready=true
 
-  params:set("chordy_start",1)
+  --params:set("chordy_start",1)
 
   return l
 end
@@ -338,6 +338,12 @@ end
 
 function MxSynths:note_on(note,amp,duration)
   if params:get("arp_start")==1 then 
+    if params:get("arp_hold")==0 and params:get("chordy_start")==0 then 
+      -- restart lattice if there are no notes
+      if self.arp.seq==nil then 
+        self.lattice:hard_restart()
+      end
+    end
     self.arp:add(note)
     self.arp:start()
   else

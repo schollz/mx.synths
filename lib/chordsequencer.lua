@@ -68,7 +68,7 @@ function ChordSequencer:init()
 end
 
 function ChordSequencer:sequencer_init()
-  local notes_on = {} -- keeps track of which notes are on
+  self.notes_on = {} -- keeps track of which notes are on
   self.pattern_note_on=self.lattice:new_pattern{
     action=function(t)
       -- trigger next note in sequence
@@ -77,7 +77,7 @@ function ChordSequencer:sequencer_init()
         local notes_new=self:next()
         if notes_new~=nil then
           for _, note_new in ipairs(notes_new) do
-            notes_on[note_new]=true
+            self.notes_on[note_new]=true
             self.note_on(note_new)
           end
         end
@@ -90,9 +90,9 @@ function ChordSequencer:sequencer_init()
       -- trigger next note-off in sequence
       print("delay")
       if self.note_off~=nil then
-        for note,_ in pairs(notes_on) do
+        for note,_ in pairs(self.notes_on) do
           self.note_off(note)
-          notes_on[note]=nil
+          self.notes_on[note]=nil
         end
       end
     end,
@@ -107,6 +107,12 @@ function ChordSequencer:stop()
   self.pattern_note_off:stop()
   self.lattice:stop_x()
   self.seq=nil
+  for note,_ in pairs(self.notes_on) do
+    if self.note_off~=nil then
+      self.note_off(note)
+    end
+    self.notes_on[note]=nil
+  end
 end
 
 function ChordSequencer:start()

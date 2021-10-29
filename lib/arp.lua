@@ -94,6 +94,9 @@ function Arp:init()
   params:add{type='binary',name="hold",id='arp_hold',behavior='toggle'}
   params:set_action("arp_hold",function(x)
     self:refresh()
+    if x==0 then 
+      self.hold_notes={}
+    end
   end)
 
   -- the sequins sequence
@@ -138,8 +141,8 @@ function Arp:stop()
   self.playing=nil
 end
 
-function Arp:start()
-  if not self.playing then
+function Arp:start(force)
+  if self.playing==nil then
     print("arp: start")
     self:refresh()
     self.pattern_note_on:start()
@@ -407,7 +410,9 @@ function Arp:add(note)
     self:remove(note)
   end
   table.insert(self.notes,note)
-  self.hold_notes={table.unpack(self.notes)}
+  if params:get("arp_hold")==1 then
+    self.hold_notes={table.unpack(self.notes)}
+  end
   self:refresh()
   print("Arp: added "..note)
 end
