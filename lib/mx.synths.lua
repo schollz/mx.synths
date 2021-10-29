@@ -309,38 +309,27 @@ function MxSynths:new(args)
 
   l.ready=true
 
+  params:set("chordy_start",1)
+
   return l
 end
 
 function MxSynths:setup_chord_sequencer()
   -- initiate sequencer
   chordy=chordsequencer_:new({lattice=self.lattice})
-  chordy:chord_on(function(data)
-    print("synthy: playing "..data[1])
-    -- data[1] is chord name
-    -- data[2] is table of parameters
-    -- data[2][..].m is midi value
-    -- data[2][..].v is frequency
-    -- data[2][..].v is volts
-    -- data[2][..].n is name of note
-    for i,d in ipairs(data[2]) do
-      self:note_on(d.m,0.5,10)
-    end
-  end)
-  chordy:chord_off(function(data)
-    print("synthy: stopping "..data[1])
-    for i,d in ipairs(data[2]) do
-      self:note_off(d.m)
-    end
-  end)
+  chordy.note_on=function(note)
+    self:note_on(note,0.5,10)
+  end
+  chordy.note_off=function(note)
+    self:note_off(note)   
+  end
 end
 
 function MxSynths:setup_arp()
   self.arp=Arp:new({lattice=self.lattice})
-  self.arp.shape=3
-  self.arp:sequencer_init()
   self.arp.note_on=function(note)
-    engine.mx_note_on(note,0.5,10)
+    print("arp: "..note)
+    engine.mx_note_on(note,0.5,2)
   end
   self.arp.note_off=function(note)
     engine.mx_note_off(note)
@@ -350,15 +339,20 @@ end
 function MxSynths:note_on(note,amp,duration)
   if params:get("arp_start")==1 then 
     self.arp:add(note)
-    self.arp:sequencer_start()
+    self.arp:start()
   else
+    print("note_on: "..note)
     engine.mx_note_on(note,amp,duration)
   end
 end
 
 function MxSynths:note_off(note)
-  self.arp:remove(note)
-  engine.mx_note_on(note,amp,duration)
+  if params:get("arp_start")==1 then 
+    self.arp:remove(note)
+    engine.mx_note_off(note)
+  else
+    engine.mx_note_off(note)
+  end
 end
 
 function MxSynths:play(s)

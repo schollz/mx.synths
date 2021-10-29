@@ -71,10 +71,8 @@ function ChordSequencer:sequencer_init()
   local notes_on = {} -- keeps track of which notes are on
   self.pattern_note_on=self.lattice:new_pattern{
     action=function(t)
-      if not self.playing then 
-        do return end
-      end
       -- trigger next note in sequence
+      print('on')
       if self.note_on~=nil then
         local notes_new=self:next()
         if notes_new~=nil then
@@ -85,11 +83,12 @@ function ChordSequencer:sequencer_init()
         end
       end
     end,
-    division=1/16,
+    division=0.5,
   }
   self.pattern_note_off=self.lattice:new_pattern{
     action=function(t)
       -- trigger next note-off in sequence
+      print("delay")
       if self.note_off~=nil then
         for note,_ in pairs(notes_on) do
           self.note_off(note)
@@ -97,18 +96,21 @@ function ChordSequencer:sequencer_init()
         end
       end
     end,
-    division=1/16,
-    offset=0.5,
+    division=0.5,
+    delay=0.9,
   }
 end
 
 function ChordSequencer:stop()
+  print("chordsequencer: stop")
   self.pattern_note_on:stop()
   self.pattern_note_off:stop()
   self.lattice:stop_x()
 end
 
-function ChordSequencer:stop()
+function ChordSequencer:start()
+  print("chordsequencer: start")
+  self:refresh()
   self.pattern_note_on:start()
   self.pattern_note_off:start()
   self.lattice:start_x()
@@ -120,20 +122,28 @@ function ChordSequencer:refresh()
     self.seq=nil
     do return end
   end
+  local seq={}
   for chord in chord_text:gmatch("%S+") do
     local data=music.chord_to_midi(chord..":"..params:get("chordy_octave"))
     if data~=nil then
       local notes={}
       for _,d in ipairs(data) do
-        table.insert(notes,data.m)
+        table.insert(notes,d.m)
       end
-      table.insert(self.seq,notes)
+      if #notes>0 then
+        table.insert(seq,notes)
+      end
     end
   end
-  if self.seq==nil then 
-    self.seq=Sequins(notes)
+  if #seq>0 then
+    print("refresh: "..#seq)
+    if self.seq==nil then 
+      self.seq=Sequins(seq)
+    else
+      self.seq:settable(seq)
+    end
   else
-    self.seq:settable(notes)
+    self.seq=nil
   end
 end
 

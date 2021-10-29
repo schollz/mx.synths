@@ -23,7 +23,7 @@ function Lattice:new(args)
   l.superclock_id = nil
   l.pattern_id_counter = 100
   l.patterns = {}
-  l.startcount = 0
+  l.startcount = -1
   return l
 end
 
@@ -60,6 +60,7 @@ end
 --- reset the norns clock and restart lattice
 function Lattice:start_x()
   if not self.enabled then
+    print("starting lattice")
     self:reset()
     self:start()
   end
@@ -69,9 +70,16 @@ end
 --- stop the lattice
 function Lattice:stop_x()
   self.startcount = self.startcount - 1 
-  if self.startcount==0 then
+  if self.startcount<=0 then
     self.enabled = false
+    self.startcount = 0
   end
+end
+
+
+--- stop the lattice
+function Lattice:stop()
+  self.enabled = false
 end
 
 --- toggle the lattice

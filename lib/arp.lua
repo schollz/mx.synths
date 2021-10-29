@@ -126,20 +126,26 @@ function Arp:sequencer_init()
       end
     end,
     division=1/16,
-    offset=0.5,
+    delay=0.5,
   }
 end
 
 function Arp:stop()
+  print("arp: stop")
   self.pattern_note_on:stop()
   self.pattern_note_off:stop()
   self.lattice:stop_x()
+  self.playing=nil
 end
 
-function Arp:stop()
-  self.pattern_note_on:start()
-  self.pattern_note_off:start()
-  self.lattice:start_x()
+function Arp:start()
+  if not self.playing then
+    print("arp: start")
+    self.pattern_note_on:start()
+    self.pattern_note_off:start()
+    self.lattice:start_x()
+    self.playing=true
+  end
 end
 
 function Arp:refresh()
@@ -406,11 +412,17 @@ function Arp:add(note)
 end
 
 function Arp:remove(note)
+  local found_note=false
   local notes={}
   for i,n in ipairs(self.notes) do
     if n~=note then
       table.insert(notes,n)
+    else 
+      found_note=true
     end
+  end
+  if not found_note then 
+    do return end
   end
   self.notes=notes
   self:refresh()
