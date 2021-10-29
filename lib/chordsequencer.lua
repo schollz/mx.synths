@@ -16,7 +16,7 @@ function ChordSequencer:new(o)
 end
 
 function ChordSequencer:init()
-  params:add_group("CHORDS",7)
+  params:add_group("CHORDS",8)
   params:add{type='binary',name="start/stop",id='chordy_start',behavior='toggle',
     action=function(v)
       if v==1 then
@@ -52,8 +52,30 @@ function ChordSequencer:init()
     end
     params:set("chordy_chords_show",table.concat(chords," "))
   end)
-  params:add_number("chordy_beats_per_chord","beats per chord",1,64,4)
+  -- define time signature
+  self.time_signatures={"4","2","1","1/2","1/4","1/8T","1/8","1/16T","1/16","1/32"}
+  self.time_divisions={4,2,1,1/2,1/4,1/6,1/8,1/12,1/16,1/32}
+  params:add_option("chordy_time_signature","time signature",self.time_signatures,2)
+  params:set_action("chordy_time_signature",function(x)
+    self.pattern_note_off:set_division(self.time_divisions[x])
+    self.pattern_note_on:set_division(self.time_divisions[x])
+  end)
+
+  -- define duration of a note
+  params:add {
+    type='control',
+    id="chordy_duration",
+    name="note duration",
+    controlspec=controlspec.new(0,100,'lin',1,50,'%',1/100),
+    action=function(x)
+      self.pattern_note_off:set_delay(x/100)
+    end
+  }
+
   params:add_number("chordy_octave","octave",1,8,3)
+  params:set_action("chordy_octave",function(x)
+    self:refresh()
+  end)
   params:add_number("chordy_transpose","transpose",-11,11,0)
   params:set_action("chordy_transpose",function(x)
     local xx=params:get("chordy_chords")
@@ -62,6 +84,7 @@ function ChordSequencer:init()
       table.insert(chords,music.transpose_chord(v,x))
     end
     params:set("chordy_chords_show",table.concat(chords," "))
+    self:refresh()
   end)
 
   self:sequencer_init()
