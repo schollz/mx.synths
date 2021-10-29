@@ -44,6 +44,7 @@ function Lattice:reset()
     self.superclock_id = nil 
   end
   for i, pattern in pairs(self.patterns) do
+    print("reseting pattern "..i)
     pattern.phase = pattern.division * self.ppqn * self.meter * (1-pattern.delay)
     pattern.downbeat = false
   end

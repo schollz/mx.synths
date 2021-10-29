@@ -106,6 +106,7 @@ function ChordSequencer:stop()
   self.pattern_note_on:stop()
   self.pattern_note_off:stop()
   self.lattice:stop_x()
+  self.seq=nil
 end
 
 function ChordSequencer:start()
