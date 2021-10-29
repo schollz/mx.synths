@@ -1,4 +1,4 @@
--- mx.synths v0.3.0
+-- mx.synths v0.4.0
 --
 --
 -- llllllll.co/t/mx-synths
