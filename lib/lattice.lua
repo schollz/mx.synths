@@ -70,6 +70,7 @@ end
 --- stop the lattice
 function Lattice:stop_x()
   self.startcount = self.startcount - 1 
+  print(self.startcount)
   if self.startcount<=0 then
     self.enabled = false
     self.startcount = 0

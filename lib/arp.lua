@@ -141,6 +141,7 @@ end
 function Arp:start()
   if not self.playing then
     print("arp: start")
+    self:refresh()
     self.pattern_note_on:start()
     self.pattern_note_off:start()
     self.lattice:start_x()
