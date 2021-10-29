@@ -23,6 +23,7 @@ function Lattice:new(args)
   l.superclock_id = nil
   l.pattern_id_counter = 100
   l.patterns = {}
+  l.startcount = 0
   return l
 end
 
@@ -56,9 +57,21 @@ function Lattice:hard_restart()
   self:start()
 end
 
+--- reset the norns clock and restart lattice
+function Lattice:start_x()
+  if not self.enabled then
+    self:reset()
+    self:start()
+  end
+  self.startcount = self.startcount + 1
+end
+
 --- stop the lattice
-function Lattice:stop()
-  self.enabled = false
+function Lattice:stop_x()
+  self.startcount = self.startcount - 1 
+  if self.startcount==0 then
+    self.enabled = false
+  end
 end
 
 --- toggle the lattice
@@ -95,23 +108,24 @@ function Lattice:pulse()
   if self.enabled then
     local ppm = self.ppqn * self.meter
     for id, pattern in pairs(self.patterns) do
-      if pattern.enabled then
-        pattern.phase = pattern.phase + 1
-        local swing_val = (2*pattern.swing/100)
-        if not pattern.downbeat then 
-          swing_val = (2*(100-pattern.swing)/100)
+      pattern.phase = pattern.phase + 1
+      local swing_val = (2*pattern.swing/100)
+      if not pattern.downbeat then 
+        swing_val = (2*(100-pattern.swing)/100)
+      end
+      if pattern.phase > (pattern.division * ppm)*swing_val then
+        pattern.phase = pattern.phase - (pattern.division * ppm)
+        if pattern.delay_new ~= nil then
+          pattern.phase = pattern.phase - (pattern.division*ppm)*(1-(pattern.delay-pattern.delay_new))
+          pattern.delay = pattern.delay_new
+    	    pattern.delay_new = nil
         end
-        if pattern.phase > (pattern.division * ppm)*swing_val then
-          pattern.phase = pattern.phase - (pattern.division * ppm)
-	  if pattern.delay_new ~= nil then
-	    pattern.phase = pattern.phase - (pattern.division*ppm)*(1-(pattern.delay-pattern.delay_new))
-            pattern.delay = pattern.delay_new
-	    pattern.delay_new = nil
-          end
+        pattern.downbeat = not pattern.downbeat
+        if pattern.enabled then
           pattern.action(self.transport)
-          pattern.downbeat = not pattern.downbeat
         end
-      elseif pattern.flag then
+      end
+      if pattern.flag then
         self.patterns[pattern.id] = nil
       end
     end

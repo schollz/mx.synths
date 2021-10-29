@@ -23,9 +23,9 @@ function Arp:init()
   params:add{type='binary',name="start/stop",id='arp_start',behavior='toggle',
     action=function(v)
       if v==1 then
-        self:sequencer_start()
+        self:start()
       else
-        self:sequencer_stop()
+        self:stop()
       end
     end
   }
@@ -101,9 +101,6 @@ function Arp:init()
 end
 
 function Arp:sequencer_init()
-  local lattice=include("mx.synths/lib/lattice")
-  self.lattice=lattice:new{}
-
   local notes_on = {} -- keeps track of which notes are on
   self.pattern_note_on=self.lattice:new_pattern{
     action=function(t)
@@ -120,7 +117,7 @@ function Arp:sequencer_init()
   }
   self.pattern_note_off=self.lattice:new_pattern{
     action=function(t)
-      -- trigger next note in sequence
+      -- trigger next note-off in sequence
       if self.note_off~=nil then
         for note,_ in pairs(notes_on) do
           self.note_off(note)
@@ -133,16 +130,16 @@ function Arp:sequencer_init()
   }
 end
 
-function Arp:sequencer_start()
-  if not self.sequencer_started then
-    self.lattice:hard_restart()
-  end
-  self.sequencer_started=true
+function Arp:stop()
+  self.pattern_note_on:stop()
+  self.pattern_note_off:stop()
+  self.lattice:stop_x()
 end
 
-function Arp:sequencer_stop()
-  self.lattice:stop()
-  self.sequencer_started=false
+function Arp:stop()
+  self.pattern_note_on:start()
+  self.pattern_note_off:start()
+  self.lattice:start_x()
 end
 
 function Arp:refresh()

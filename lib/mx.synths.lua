@@ -1,6 +1,8 @@
 local MusicUtil=require "musicutil"
 local Formatters=require 'formatters'
 local chordsequencer_=include("mx.synths/lib/chordsequencer")
+local lattice=include("mx.synths/lib/lattice")
+
 
 local MxSynths={}
 
@@ -283,6 +285,7 @@ function MxSynths:new(args)
   end
 
   l.ready=false
+  l.lattice=lattice:new{}
   l:setup_arp()
   l:setup_chord_sequencer()
 
@@ -311,7 +314,7 @@ end
 
 function MxSynths:setup_chord_sequencer()
   -- initiate sequencer
-  chordy=chordsequencer_:new()
+  chordy=chordsequencer_:new({lattice=self.lattice})
   chordy:chord_on(function(data)
     print("synthy: playing "..data[1])
     -- data[1] is chord name
@@ -333,7 +336,7 @@ function MxSynths:setup_chord_sequencer()
 end
 
 function MxSynths:setup_arp()
-  self.arp=Arp:new()
+  self.arp=Arp:new({lattice=self.lattice})
   self.arp.shape=3
   self.arp:sequencer_init()
   self.arp.note_on=function(note)
