@@ -435,6 +435,76 @@ Engine_MxSynths : CroneEngine {
 	
 			Out.ar(out,snd*env*amp/5);
 		}).add;
+		
+		SynthDef("aaaaaa",{
+			arg out=0,hz=220,amp=1.0,pan=0,gate=1,
+			sub=0,portamento=1,bend=0,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,duration=600;
+	    var saw, wiggle, snd;
+	    // frequencies drawn from https://slideplayer.com/slide/15020921/
+	    var f1a = [290, 420, 580, 720, 690, 550, 400, 280];
+	    var f2a = [750, 1000, 790, 1100, 1600, 1750, 1900, 2200];
+	    var f3a = [2300, 2350, 2400, 2500, 2600, 2700, 2800, 3300];
+	    var f4a = [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500];
+	    var f1b = [390, 435, 590, 850, 860, 600, 420, 360];
+	    var f2b = [900, 1100, 850, 1200, 2200, 2350, 2500, 2750];
+	    var f3b = [2850, 2900, 3000, 3000, 3100, 3200, 3300, 3800];
+	    var f4b = [4000, 4000, 4000, 4000, 4000, 4000, 4000, 4000];
+	    var f1c = [420, 590, 640, 1100, 1000, 700, 575, 375];
+	    var f2c = [1200, 1300, 1100, 1300, 2500, 2700, 2800, 3200];
+	    var f3c = [3200, 3250, 3300, 3400, 3500, 3600, 3700, 4200];
+	    var f4c = [4500, 4500, 4500, 4500, 4500, 4500, 4500, 4500];
+	    var f1, f2, f3, f4;
+	    var a1, a2, a3, a4;
+	    var q1, q2, q3, q4;
+	    var voice, vowel, tilt, cons, detune, focus, div, reso;
+	    var env;
+	    mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+	    voice=Select.kr( (mod1 > -0.99), [hz.explin(100, 1000, 0, 2), LinLin.kr(mod1, -1, 1, 0, 2)]);
+	    vowel=LinLin.kr(mod2, -1, 1, 0, 7);
+	    tilt=LinLin.kr(mod2, -1, 1, 0.3, 0.6) * LinLin.kr(mod4, -1, 1, 0.6, 1.1);
+	    reso = LinLin.kr(mod4, -1, 1, 0.1, 0.23);
+	    detune = LinLin.kr(mod3, -1, 1, 0, 0.015);
+	    focus = -1 * LinLin.kr(mod3, -1, 1, 0, 1);
+	    div = LinLin.kr(mod3, -1, 1, 1, 7).sqrt;
+	    cons = mod4.linlin(-1, 1, -0.5, 0.8);
+
+	    f1 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f1a, f1b, f1c].flop));
+	    f2 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f2a, f2b, f2c].flop));
+	    f3 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f3a, f3b, f3c].flop));
+	    f4 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f4a, f4b, f4c].flop));
+	    a1 = 1;
+	    a2 = tilt;
+	    a3 = tilt ** 1.5;
+	    a4 = tilt ** 2;
+	    q1 = reso;
+	    q2 = q1/1.5;
+	    q3 = q2/1.5;
+	    q4 = reso/10;
+	    
+			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+	    saw = VarSaw.ar(hz*(1+ (detune * [-1, 0.7, -0.3, 0, 0.3, -0.7, 1])), width: 0).collect({ |item, index|
+	      Pan2.ar(item, index.linlin(0, 6, -1, 1)*SinOsc.kr(Rand.new(0.1, 0.3))*focus)
+	    });
+	    wiggle = EnvGen.kr(Env.perc(attackTime: 0.0, releaseTime: 0.15), doneAction: Done.none);
+	    saw.postln;
+	    snd = HPF.ar(
+		    Mix.new(BBandPass.ar(saw, ([
+		    f1, 
+		    f2 * (1 + (cons*wiggle)),
+		    f3, 
+		    f4]!2).flop, 
+		    ([q1, q2, q3, q4]!2).flop) * ([a1, a2, a3, a4]!2).flop),
+		  20);
+		  snd.postln;
+			
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+
+			snd = Balance2.ar(snd[0], snd[1], Lag.kr(pan,0.1)).tanh;
+	
+			Out.ar(out,snd*env*amp/5);
+		}).add;		
 
 		// initialize fx synth and bus
 		context.server.sync;
