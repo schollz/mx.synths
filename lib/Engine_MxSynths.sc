@@ -38,14 +38,14 @@ Engine_MxSynths : CroneEngine {
 
 		// initialize synth defs
 		SynthDef("mxfx",{
-			arg out=0, inBus=10, 
+			arg out=0, inBus=10,
 			lpf=20000, delay=0,
 			secondsPerBeat=1,delayBeats=4,delayFeedback=0.1;
 
 			var snd, snd2;
 
 			snd=In.ar(inBus,2);
-	
+
 			// // add flanger
 			// flanger = snd+LocalIn.ar(2); //add some feedback
 			// flanger= DelayN.ar(flanger,0.02,SinOsc.kr(0.1,0,0.005,0.005)); //max delay of 20msec
@@ -54,14 +54,14 @@ Engine_MxSynths : CroneEngine {
 
 			// lpf
 			snd = LPF.ar(snd.tanh,Lag.kr(lpf,1));
-			
+
 			// delay
 			snd = snd + (delay * CombL.ar(
 				snd,
 				2,
 				secondsPerBeat*delayBeats,
 				secondsPerBeat*delayBeats*LinLin.kr(delayFeedback,0,1,2,128),// delayFeedback should vary between 2 and 128
-			)); 
+			));
 
 			// todo:
 			// add tremelo
@@ -231,7 +231,7 @@ Engine_MxSynths : CroneEngine {
 			klankyvol=LinLin.kr(mod2,-1,1,0,2);
 			lowcut=LinExp.kr(mod3,-1,1,25,11000);
 			chorus=LinExp.kr(mod4,-1,1,0.2,5);
-			
+
 			note=Lag.kr(hz,portamento).cpsmidi + bend;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			sub=Lag.kr(sub,1);
@@ -255,7 +255,7 @@ Engine_MxSynths : CroneEngine {
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
 			var snd,note,env, basshz,bass, detuning,pw, res,filt,detuningSpeed;
 			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-			
+
 			detuningSpeed=LinExp.kr(mod1,-1,1,0.1,10);
 			filt=LinLin.kr(mod2,-1,1,2,10);
 			res=LinExp.kr(mod3,-1,1,0.25,4);
@@ -274,8 +274,8 @@ Engine_MxSynths : CroneEngine {
 				snd_=RLPF.ar(snd_,Clip.kr(hz_*filt,hz_*1.5,16000),Clip.kr(LFTri.kr([0.5,0.45]).range(0.3,1)*res,0.2,2));
 				Pan2.ar(snd_,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine))/10
 			}));
-			
-			
+
+
 			basshz=hz;
 			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
 			basshz=Select.kr(basshz>90,[basshz,basshz/2]);
@@ -285,7 +285,7 @@ Engine_MxSynths : CroneEngine {
 			bass = HPF.ar(bass,20);
 			bass = LPF.ar(bass,SinOsc.kr(0.1).range(2,5)*basshz);
 			snd=snd+(SinOsc.kr(0.123).range(0.2,1.0)*bass*sub);
-			
+
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp/8);
 		}).add;
@@ -324,7 +324,7 @@ Engine_MxSynths : CroneEngine {
 			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			mix=LinLin.kr(mod4,-1,1,0.01,0.4);
-			
+
 			// Basic tone is a SinOsc
 			snd = SinOsc.ar((hz.cpsmidi+mod4).midicps);
 			snd = HPF.ar( LPF.ar(snd, 380), 40);
@@ -344,7 +344,7 @@ Engine_MxSynths : CroneEngine {
 				rate:LinExp.kr(mod2,-1,1,0.0001,20),
 				depth:LinExp.kr(mod3,-1,1,0.0001,1)
 			);
-			
+
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
 			Out.ar(out,snd*env*amp);
 		}).add;
@@ -416,7 +416,7 @@ Engine_MxSynths : CroneEngine {
 			lpf_rq=LinLin.kr(mod3,-1,1,0.1,8);
 			tune_up=1+LinLin.kr(mod4,-1,1,0.0001,0.0005*4);
 			tune_down=1-LinLin.kr(mod4,-1,1,0.00005,0.0004*4);
-			
+
 			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
@@ -432,10 +432,10 @@ Engine_MxSynths : CroneEngine {
 			snd = RLPF.ar(string, lpf_ratio * hz, lpf_rq);
 			snd = HPF.ar(snd, hpf_hz);
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
-	
+
 			Out.ar(out,snd*env*amp/5);
 		}).add;
-		
+
 		SynthDef("aaaaaa",{
 			arg out=0,hz=220,amp=1.0,pan=0,gate=1,
 			sub=0,portamento=1,bend=0,
@@ -482,7 +482,7 @@ Engine_MxSynths : CroneEngine {
 	    q2 = q1/1.5;
 	    q3 = q2/1.5;
 	    q4 = reso/10;
-	    
+
 			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 	    saw = VarSaw.ar(hz*(1+ (detune * [-1, 0.7, -0.3, 0, 0.3, -0.7, 1])), width: 0).collect({ |item, index|
 	      Pan2.ar(item, index.linlin(0, 6, -1, 1)*SinOsc.kr(Rand.new(0.1, 0.3))*focus)
@@ -491,20 +491,20 @@ Engine_MxSynths : CroneEngine {
 	    saw.postln;
 	    snd = HPF.ar(
 		    Mix.new(BBandPass.ar(saw, ([
-		    f1, 
+		    f1,
 		    f2 * (1 + (cons*wiggle)),
-		    f3, 
-		    f4]!2).flop, 
+		    f3,
+		    f4]!2).flop,
 		    ([q1, q2, q3, q4]!2).flop) * ([a1, a2, a3, a4]!2).flop),
 		  20);
 		  snd.postln;
-			
+
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
 			snd = Balance2.ar(snd[0], snd[1], Lag.kr(pan,0.1)).tanh;
-	
+
 			Out.ar(out,snd*env*amp/5);
-		}).add;		
+		}).add;
 
 		// initialize fx synth and bus
 		context.server.sync;
@@ -605,7 +605,7 @@ Engine_MxSynths : CroneEngine {
 					if (val<oldestNoteVal,{
 						oldestNoteVal=val;
 						oldestNote=key;
-					});	
+					});
 				});
 				("max polyphony reached, removing note "++oldestNote).postln;
 				fnNoteOff.(oldestNote);
@@ -616,7 +616,7 @@ Engine_MxSynths : CroneEngine {
 		fnNoteOn= {
 			arg note,amp,duration;
 			// ("note on: "++note).postln;
-			
+
 			// if monophonic, remove all the other sounds
 			if (mxParameters.at("monophonic")>0,{
 				fnNoteOnMono.(note,amp,duration);
@@ -624,11 +624,11 @@ Engine_MxSynths : CroneEngine {
 				fnNoteOnPoly.(note,amp,duration);
 			});
 		};
-		
+
 		fnNoteOff = {
 			arg note;
-			// ("note off: "++note).postln;		
-			// remove it it hasn't already been removed	and synth gone	
+			// ("note off: "++note).postln;
+			// remove it it hasn't already been removed	and synth gone
 			if ((mxVoices.at(note) == nil) || ((mxVoices.at(note).isRunning==false)&&(mxVoicesOn.at(note)==nil)),{},{
 				// if monophonic, remove all the other sounds
 				if (mxParameters.at("monophonic")>0,{
@@ -723,7 +723,7 @@ Engine_MxSynths : CroneEngine {
 				});
 			});
 			fnNoteOn.(msg[1],msg[2],msg[3]);
-		});	
+		});
 
 		this.addCommand("mx_note_off", "i", { arg msg;
 			var note=msg[1];
@@ -735,7 +735,7 @@ Engine_MxSynths : CroneEngine {
 			if (pedalSustainOn==false,{
 				// release all sustained notes
 				// that aren't currently being held down
-				pedalSustainNotes.keysValuesDo({ arg note, val; 
+				pedalSustainNotes.keysValuesDo({ arg note, val;
 					if (mxVoicesOn.at(note)==nil,{
 						pedalSustainNotes.removeAt(note);
 						fnNoteOff.(note);
@@ -743,7 +743,7 @@ Engine_MxSynths : CroneEngine {
 				});
 			},{
 				// add currently down notes to the pedal
-				mxVoicesOn.keysValuesDo({ arg note, val; 
+				mxVoicesOn.keysValuesDo({ arg note, val;
 					pedalSustainNotes.put(note,1);
 				});
 			});
@@ -754,7 +754,7 @@ Engine_MxSynths : CroneEngine {
 			if (pedalSostenutoOn==false,{
 				// release all sustained notes
 				// that aren't currently being held down
-				pedalSostenutoNotes.keysValuesDo({ arg note, val; 
+				pedalSostenutoNotes.keysValuesDo({ arg note, val;
 					if (mxVoicesOn.at(note)==nil,{
 						pedalSostenutoNotes.removeAt(note);
 						fnNoteOff.(note);
@@ -789,7 +789,7 @@ Engine_MxSynths : CroneEngine {
 			var val=msg[2];
 			// ("setting "++key++" to "++val).postln;
 			mxParameters.put(key,val);
-			switch (key, 
+			switch (key,
 				"sub",{
 					updateSub.();
 				}, 	// update sub
@@ -802,7 +802,7 @@ Engine_MxSynths : CroneEngine {
 							});
 						});
 					});
-				}, 
+				},
 				"amp",{}, 	// do nothing
 				"attack",{}, 	// do nothing
 				"sustain",{}, 	// do nothing
