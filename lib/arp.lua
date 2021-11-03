@@ -309,7 +309,9 @@ function Arp:refresh()
         table.insert(s2,s[#s])
       end
     end
-    s=s2
+    if #s2>1 then
+      s=s2
+    end
   elseif self.shapes[params:get("arp_shape")]=="pinky up-down" then
     -- pinky up-down
     -- 1 2 3 4 5 becomes
@@ -327,7 +329,9 @@ function Arp:refresh()
         table.insert(s2,s[#s])
       end
     end
-    s=s2
+    if #s2>1 then
+      s=s2
+    end
   elseif self.shapes[params:get("arp_shape")]=="thumb up" then
     -- thumb up
     -- 1 2 3 4 5 becomes
@@ -339,7 +343,9 @@ function Arp:refresh()
         table.insert(s2,n)
       end
     end
-    s=s2
+    if #s2>1 then
+      s=s2
+    end
   elseif self.shapes[params:get("arp_shape")]=="thumb up-down" then
     -- thumb up-down
     -- 1 2 3 4 5 becomes
@@ -357,7 +363,9 @@ function Arp:refresh()
         table.insert(s2,n)
       end
     end
-    s=s2
+    if #s2>1 then
+      s=s2
+    end
   elseif self.shapes[params:get("arp_shape")]=="random" then
     -- random
     -- 1 2 3 4 5 becomes
