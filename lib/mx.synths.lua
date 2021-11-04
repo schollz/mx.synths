@@ -17,6 +17,7 @@ function MxSynths:new(args)
   local delay_last_clock=0
 
   -- add parameters
+  l.save_file=args.save_file or "mx.synths/default.pset"
   l.save_on_change=args.save or false
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
   l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc","icarus","mdapiano","kalimba", "aaaaaa"}
@@ -290,8 +291,8 @@ function MxSynths:new(args)
   l:setup_chord_sequencer()
 
   if args.previous==true then
-    if util.file_exists(_path.data.."mx.synths/default.pset") then
-      params:read(_path.data.."mx.synths/default.pset")
+    if util.file_exists(_path.data..l.save_file) then
+      params:read(_path.data..l.save_file)
     end
   end
   params:set("chordy_start",0)
@@ -390,7 +391,7 @@ function MxSynths:run()
       self:lfo()
       if self.debouncer>0 then
         if self.debouncer==1 then
-          params:write(_path.data.."mx.synths/default.pset")
+          params:write(_path.data..l.save_file)
         end
         self.debouncer=self.debouncer-1
       end
