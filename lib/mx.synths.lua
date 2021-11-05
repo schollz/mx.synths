@@ -2,7 +2,9 @@ local MusicUtil=require "musicutil"
 local Formatters=require 'formatters'
 local chordsequencer_=include("mx.synths/lib/chordsequencer")
 local lattice=include("mx.synths/lib/lattice")
-
+if Arp==nil then 
+  Arp=include("mx.synths/lib/arp")
+end
 
 local MxSynths={}
 
@@ -10,7 +12,6 @@ function MxSynths:new(args)
   local l=setmetatable({},{__index=MxSynths})
   local args=args==nil and {} or args
   l.debug=args.debug --true-- args.debug -- true --args.debug
-
   local filter_freq=controlspec.new(20,20000,'exp',0,20000,'Hz')
   local delay_rates_names={"whole-note","half-note","quarter note","eighth note","sixteenth note","thirtysecond"}
   local delay_rates={4,2,1,1/2,1/4,1/8,1/16}
@@ -18,6 +19,7 @@ function MxSynths:new(args)
 
   -- add parameters
   l.save_file=args.save_file or "mx.synths/default.pset"
+  l.engine_name=args.engine_name or "MxSynths"
   l.save_on_change=args.save or false
   l.lfos={"pan","attack","decay","sustain","release","mod1","mod2","mod3","mod4","lpf","delay"}
   l.synths={"piano","epiano","casio","malone","toshiya","synthy","PolyPerc","icarus","mdapiano","kalimba", "aaaaaa"}
@@ -38,7 +40,7 @@ function MxSynths:new(args)
   -- synth selector
   params:add_option("mxsynths_synth","synth",l.synths,1)
   params:set_action("mxsynths_synth",function(x)
-    if engine.name=="MxSynths" then
+    if engine.name==l.engine_name then
       engine.mx_set_synth(l.synths[x])
       l:save()
     end
@@ -50,7 +52,7 @@ function MxSynths:new(args)
     return ((val<0) and "" or "+")..val.." dB"
   end}
   params:set_action("mxsynths_amp",function(x)
-    if engine.name=="MxSynths" then
+    if engine.name==l.engine_name then
       engine.mx_set("amp",util.dbamp(x))
       l:save()
     end
@@ -61,7 +63,7 @@ function MxSynths:new(args)
     return ((val<0) and "" or "+")..val.." dB"
   end}
   params:set_action("mxsynths_sub",function(x)
-    if engine.name=="MxSynths" then
+    if engine.name==l.engine_name then
       engine.mx_set("sub",util.dbamp(x))
       l:save()
     end
@@ -73,7 +75,7 @@ function MxSynths:new(args)
     name="pan",
     controlspec=controlspec.new(-1,1,'lin',0,0),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set("pan",x)
         l:save()
       end
@@ -86,7 +88,7 @@ function MxSynths:new(args)
     name="attack",
     controlspec=controlspec.new(0,10,'lin',0.01,0.01,'s',0.01/10),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set("attack",x)
         l:save()
       end
@@ -99,7 +101,7 @@ function MxSynths:new(args)
     name="decay",
     controlspec=controlspec.new(0,10,'lin',0,1,'s'),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set("decay",x)
         l:save()
       end
@@ -112,7 +114,7 @@ function MxSynths:new(args)
     name="sustain",
     controlspec=controlspec.new(0,2,'lin',0,0.9,'amp'),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set("sustain",x)
         l:save()
       end
@@ -125,7 +127,7 @@ function MxSynths:new(args)
     name="release",
     controlspec=controlspec.new(0,10,'lin',0,1,'s'),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set("release",x)
         l:save()
       end
@@ -139,7 +141,7 @@ function MxSynths:new(args)
       name="mod"..i,
       controlspec=controlspec.new(-1,1,'lin',0.01,0,'',0.01/2),
       action=function(x)
-        if engine.name=="MxSynths" then
+        if engine.name==l.engine_name then
           engine.mx_set("mod"..i,x)
           l:save()
         end
@@ -153,7 +155,7 @@ function MxSynths:new(args)
     name="tune",
     controlspec=controlspec.new(-100,100,'lin',0,0,'cents',1/200),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set("tune",x/100)
         l:save()
       end
@@ -167,7 +169,7 @@ function MxSynths:new(args)
     controlspec=filter_freq,
     formatter=Formatters.format_freq,
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_fxset("lpf",x)
         l:save()
       end
@@ -180,7 +182,7 @@ function MxSynths:new(args)
     name="delay send",
     controlspec=controlspec.new(0,100,'lin',0,10,'%',1/100),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_fxset("delay",x/100)
         l:save()
       end
@@ -193,7 +195,7 @@ function MxSynths:new(args)
     name="delay iterations",
     controlspec=controlspec.new(0,100,'lin',0,11,'beats',1/100),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_fxset("delayFeedback",x/100)
         l:save()
       end
@@ -202,7 +204,7 @@ function MxSynths:new(args)
 
   params:add_option("mxsynths_delay_rate","delay rate",delay_rates_names,3)
   params:set_action("mxsynths_delay_rate",function(x)
-    if engine.name=="MxSynths" then
+    if engine.name==l.engine_name then
       engine.mx_fxset("delayBeats",delay_rates[x])
       l:save()
     end
@@ -211,7 +213,7 @@ function MxSynths:new(args)
   -- polyphony selector
   params:add_option("mxsynths_polyphony","polyphony",{"polyphonic","monophonic"},1)
   params:set_action("mxsynths_polyphony",function(x)
-    if engine.name=="MxSynths" then
+    if engine.name==l.engine_name then
       engine.mx_set("monophonic",x-1)
       l:save()
       if x==2 then
@@ -228,7 +230,7 @@ function MxSynths:new(args)
     name="portamento",
     controlspec=controlspec.new(0,5,'lin',0.01,0,'s',0.01/5),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set("portamento",x)
         l:save()
       end
@@ -240,7 +242,7 @@ function MxSynths:new(args)
     name="max polyphony",
     controlspec=controlspec.new(0,100,'lin',2,20,'notes',1/100),
     action=function(x)
-      if engine.name=="MxSynths" then
+      if engine.name==l.engine_name then
         engine.mx_set_polyphony(math.floor(x))
         l:save()
       end
@@ -249,7 +251,7 @@ function MxSynths:new(args)
 
   params:add_option("mxsynths_sensitivity","velocity sensitivity",{"delicate","normal","stiff","fixed"},2)
   params:set_action("mxsynths_sensitivity",function(x)
-    if engine.name=="MxSynths" then
+    if engine.name==l.engine_name then
       l:save()
     end
   end)
@@ -281,7 +283,7 @@ function MxSynths:new(args)
   --   end
   -- end
 
-  if engine.name=="MxSynths" then
+  if engine.name==l.engine_name then
     engine.mx_fxset("secondsPerBeat",clock.get_beat_sec())
   end
 
@@ -296,7 +298,7 @@ function MxSynths:new(args)
     end
   end
   params:set("chordy_start",0)
-  params:bang()
+  -- params:bang()
   l:refresh_params()
   l:run()
 
@@ -391,7 +393,7 @@ function MxSynths:run()
       self:lfo()
       if self.debouncer>0 then
         if self.debouncer==1 then
-          params:write(_path.data..l.save_file)
+          params:write(_path.data..self.save_file)
         end
         self.debouncer=self.debouncer-1
       end
