@@ -506,6 +506,44 @@ Engine_MxSynths : CroneEngine {
 			Out.ar(out,snd*env*amp/5);
 		}).add;
 
+		SynthDef("triangles",{
+			arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
+			var snd,env,bellow_env,bellow,
+			detune_cents,detune_semitones,
+			f_cents,freq_a,freq_b,decimation_bits,decimation_rate,
+			noise_level,vibrato_rate,vibrato_depth;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			hz=Lag.kr(hz,portamento);
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+
+			bellow=LinLin.kr(mod1,-1,1,0,1);
+			decimation_bits = LinLin.kr(mod2, -1, 1, 24, 4);
+			decimation_rate = LinLin.kr(mod2, -1, 1, 44100, 8000);
+			noise_level = LinLin.kr(mod2, -1, 1, 0, 0.5);
+			detune_semitones = LinLin.kr(mod3, -1, 1, -24, 24);
+			vibrato_rate = LinLin.kr(mod4, -1, 1, 0, 5);
+			vibrato_depth = LinExp.kr(mod4, -1, 1, 0.001, 0.3);
+
+			bellow_env = EnvGen.kr(Env.step([bellow, 1-bellow], [attack, release], 1), gate: gate);
+	    freq_a = hz;
+	    freq_b = (hz.cpsmidi + detune_semitones.round).midicps;
+
+			snd = Mix.new([
+				SelectX.ar(bellow_env.lag, [
+					DPW3Tri.ar(Vibrato.ar(freq_a, vibrato_rate, vibrato_depth)),
+					DPW3Tri.ar(Vibrato.ar(freq_b, vibrato_rate, vibrato_depth)),
+				]),
+				PinkNoise.ar(noise_level),
+			]);
+
+			snd = Decimator.ar(snd, decimation_rate, decimation_bits);
+
+			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
+			Out.ar(out,snd*env*amp/8);
+		}).add;
+
 		// initialize fx synth and bus
 		context.server.sync;
 		mxBusFx = Bus.audio(context.server,2);
