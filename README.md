@@ -125,6 +125,14 @@ since all synths share the parameters menu, you should save your settings if you
 
 <br>
 
+**triangles**:based off the [triangles](https://llllllll.co/t/triangles/52662) engine. mods:
+1. bellow
+2. noise
+3. semitone detune
+4. vibrato
+
+<br>
+
 
 ### usage as library
 

@@ -76,6 +76,8 @@ function redraw()
     epiano()
   elseif synth=="icarus" then
     icarus()
+  elseif synth=="triangles" then
+    triangles()
   elseif synth=="mdapiano" then
     screen.display_png(_path.code.."mx.synths/lib/piano.png",-1,0)
     generic()
@@ -432,4 +434,43 @@ function line(x1,y1,x2,y2,level)
   screen.move(x1,y1)
   screen.line(x2,y2)
   screen.stroke()
+end
+
+function rotate(p, deg)
+  local rad = math.rad(deg)
+  local x_p = (p.x * math.cos(rad)) - (p.y * math.sin(rad))
+  local y_p = (p.x * math.sin(rad)) + (p.y * math.cos(rad))
+
+  return { x = x_p, y = y_p }
+end
+
+function draw_triangle(x, y, size, deg)
+  local h = (math.sqrt(3) * size) / 2
+  local v1 = { x = 0, y = h/2}
+  local v2 = { x = size/2, y = -h/2}
+  local v3 = { x = -size/2, y = -h/2}
+
+  v1 = rotate(v1, deg)
+  v2 = rotate(v2, deg)
+  v3 = rotate(v3, deg)
+
+  screen.level(15)
+  screen.line_width(1)
+  screen.move(v1.x + x, v1.y + y)
+  screen.line(v2.x + x, v2.y + y)
+  screen.line(v3.x + x, v3.y + y)
+  screen.close()
+  screen.stroke()
+end
+
+function triangles()
+  local r1 = util.linlin(-1, 1, 0, 360, params:get("mxsynths_mod1"))
+  local r2 = util.linlin(-1, 1, 0, 360, params:get("mxsynths_mod2"))
+  local r3 = util.linlin(-1, 1, 0, 360, params:get("mxsynths_mod3"))
+  local r4 = util.linlin(-1, 1, 0, 360, params:get("mxsynths_mod4"))
+
+  draw_triangle(20, 32, 30, r1)
+  draw_triangle(45, 32, 32, r2)
+  draw_triangle(70, 32, 34, r3)
+  draw_triangle(95, 32, 36, r4)
 end
