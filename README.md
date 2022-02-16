@@ -125,6 +125,10 @@ since all synths share the parameters menu, you should save your settings if you
 
 <br>
 
+
+![triangles](https://user-images.githubusercontent.com/6550035/154361566-622229ff-cb8c-4c42-b9cb-ced3fa2ae060.png)
+
+
 **triangles**:based off the [triangles](https://llllllll.co/t/triangles/52662) engine. mods:
 1. bellow
 2. noise
