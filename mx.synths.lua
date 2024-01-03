@@ -46,7 +46,7 @@ end
 
 function redraw_clock() -- our grid redraw clock
   while true do -- while it's running...
-    clock.sleep(1/10) -- refresh
+    clock.sleep(1/20) -- refresh
     redraw()
   end
 end
@@ -117,11 +117,11 @@ function icarus()
   screen.level(15)
   screen.circle(rpos[1],rpos[2]+10,rfeedback)
   screen.fill()
-  screen.update()
+
   -- the ocean
   local rfilter=util.linlin(-1,1,62,20,mod[3])
   local horizon=math.floor(rfilter)
-  screen.update()
+
   math.randomseed(4)
   screen.level(0)
   screen.rect(0,rfilter,129,65)
@@ -132,8 +132,8 @@ function icarus()
       x=(rnd(160)+current_time*160/z)%150-16
       w=cos(rnd()+current_time)*12/z
       if (w>0) then
-        local s=screen.peek(math.floor(x),math.floor(horizon-1-y/2),math.floor(x+1),math.floor(horizon-y/2))
-        if s~=nil then
+        local s = screen.peek(math.floor(x)%128+1,math.floor(horizon-1-y/2)%64+1, math.floor(x+1)%128+1,math.floor(horizon-y/2)%64+1)
+        if s ~= nil and s~='' then
           local pgot=util.clamp(string.byte(s,1),1,15)
           screen.level(pgot+1)
           screen.move(x-w,y+horizon)
